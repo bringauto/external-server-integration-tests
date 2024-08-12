@@ -8,10 +8,7 @@ import coverage.exceptions as _cov_exceptions
 
 
 TEST_DIR_NAME = "tests"
-OMITTED_FILES = [
-    "__init__.py",
-    "./__main__.py"
-]
+OMITTED_FILES = ["__init__.py", "./__main__.py"]
 HTML_REPORT_FLAG = "-h"
 
 
