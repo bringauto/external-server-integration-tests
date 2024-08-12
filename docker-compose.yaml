@@ -1,0 +1,20 @@
+services:
+  external-server:
+    build: "/home/jiri-strouhal/Plocha/external-server"
+    entrypoint: [
+      "python3",
+      "/home/bringauto/external_server/external_server_main.py",
+      "-c",
+      "./config/config.json"
+    ]
+    volumes:
+    - "./config:/home/bringauto/external_server/config"
+    - "./log:/home/bringauto/external_server/log"
+    - "./lib/example-module:/home/bringauto/external_server/lib/example-module"
+    restart: always
+    networks:
+      - bring-emulator
+
+networks:
+  bring-emulator:
+    name: bring-emulator
