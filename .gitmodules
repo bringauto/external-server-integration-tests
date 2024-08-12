@@ -1,0 +1,4 @@
+[submodule "lib/example-module"]
+	path = lib/example-module
+	url = https://github.com/bringauto/example-module.git
+	branch = master
