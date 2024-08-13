@@ -8,9 +8,24 @@ services:
       "./config/config.json"
     ]
     volumes:
-    - "./config:/home/bringauto/external_server/config"
-    - "./log:/home/bringauto/external_server/log"
+    - "./config/external-server:/home/bringauto/external_server/config"
+    - "./log/external-server:/home/bringauto/external_server/log"
     - "./lib/example-module:/home/bringauto/external_server/lib/example-module"
+    restart: "no"
+    networks:
+      - external-server-test
+
+  module-gateway:
+    image:  bringauto/module-gateway:v1.1.6
+    volumes:
+      - ./config/module-gateway:/home/bringauto/module-gateway/config/
+      - ./log/module-gateway:/home/bringauto/module-gateway/log/
+      - ./lib/example-module:/home/bringauto/module-gateway/lib/example-module/
+    ports:
+      - 1636:1636
+    entrypoint: ["/home/bringauto/module-gateway/bin/module-gateway-app",
+                 "--config-path=/home/bringauto/module-gateway/config/config.json",
+                 "--verbose"]
     restart: "no"
     networks:
       - external-server-test

@@ -1,0 +1,29 @@
+{
+  "general-settings": {
+    "log-path": "/home/bringauto/module-gateway/log",
+    "verbose": true
+  },
+  "internal-server-settings": {
+    "port": 1636
+  },
+  "module-paths": {
+    "1000": "/home/bringauto/module-gateway/lib/example-module/_build/libexample-module-gateway-sharedd.so"
+  },
+  "external-connection" : {
+    "company" : "company_x",
+    "vehicle-name" : "car_a",
+    "endpoints" :
+    [
+      {
+        "protocol-type" : "mqtt",
+        "mqtt-settings" : {
+          "ssl" : false
+        },
+        "server-ip": "127.0.0.1",
+        "port": 1883,
+        "modules": [1000]
+      }
+    ]
+  }
+}
+
