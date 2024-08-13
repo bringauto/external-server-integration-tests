@@ -1,16 +1,18 @@
 import unittest
 import sys
 import subprocess
+import time
 
 sys.path.append(".")
 
 from tests.broker import MQTTBrokerTest
 
 
-class Test_(unittest.TestCase):
+class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
 
     def setUp(self) -> None:
         self.broker = MQTTBrokerTest(start=True)
+        time.sleep(1)
         self.module_process = subprocess.Popen(
             [
                 "python3",
@@ -25,8 +27,8 @@ class Test_(unittest.TestCase):
         )
         self.server_process = subprocess.Popen(["docker", "compose", "up"])
 
-    def test_(self):
-        pass
+    def test_succesfull_communication_with_single_device(self):
+        time.sleep(10)
 
     def tearDown(self):
         self.module_process.terminate()
