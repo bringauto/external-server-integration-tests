@@ -1,0 +1,12 @@
+- button1:
+    type: 0
+    role: test
+    priority: 1
+
+- button1:
+    role: test
+    type: 10
+
+- button2:
+    role: test2
+    type: 0
