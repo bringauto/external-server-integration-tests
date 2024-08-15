@@ -1,0 +1,31 @@
+{
+    "database": {
+        "server": {
+            "location": "localhost",
+            "port": 5432,
+            "username": "postgres",
+            "password": "1234",
+            "database_name": "protocol_api"
+        },
+        "cleanup": {
+            "timing_in_seconds": {
+                "retention_period": 3600,
+                "cleanup_period": 1
+
+            }
+        }
+    },
+    "http_server": {
+        "base_uri": "http://localhost:8080/v2/protocol"
+    },
+    "request_for_messages": {
+        "timeout_in_seconds": 5
+    },
+    "security": {
+        "keycloak_url": "https://keycloak.bringauto.com",
+        "client_id": "",
+        "client_secret_key": "",
+        "scope": "",
+        "realm": ""
+    }
+}

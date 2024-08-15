@@ -1,3 +1,0 @@
-[submodule "python_client/lib/internal_client"]
-	path = python_client/lib/internal_client
-	url = https://github.com/bringauto/internal-client-python.git

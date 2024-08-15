@@ -7,5 +7,5 @@ pushd lib/example-module
     fi
     mkdir _build && cd _build
     cmake .. -DCMLIB_DIR=https://github.com/cmakelib/cmakelib.git
-    make
+    make V=1
 popd
