@@ -14,6 +14,7 @@ from tests.utils import (
     device_obj,
     CmdResponseType,
     DeviceState,
+    CarMsgSender,
     status,
 )
 
@@ -33,28 +34,16 @@ class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
     def setUp(self) -> None:
         clear_logs()
         self.broker = MQTTBrokerTest(start=True)
-        subprocess.run(["docker", "compose", "up", "--build", "-d"])
-        time.sleep(2)
+        subprocess.run(["docker", "compose", "up", "-d"])
+        time.sleep(1)
 
     def test_succesfull_connect_sequence_with_a_single_device(self):
+        car_msg = CarMsgSender(self.broker, "company_x", "car_a")
         device = device_obj(**AUTONOMY_DEVICE_ID)
-        self.broker.publish(
-            "company_x/car_a/module_gateway",
-            connect_msg("session_id", "company_x", "car_a", [device]),
-        )
+        car_msg.post(connect_msg("session_id", "company_x", "car_a", [device]))
+        car_msg.post(status("session_id", DeviceState.CONNECTING, device, b"", counter=0))
+        car_msg.post(command_response("session_id", type=CmdResponseType.OK, counter=0))
         time.sleep(1)
-        self.broker.publish(
-            "company_x/car_a/module_gateway",
-            status(
-                "session_id", state=DeviceState.CONNECTING, device=device, payload=b"", counter=0
-            ),
-        )
-        time.sleep(2)
-        self.broker.publish(
-            "company_x/car_a/module_gateway",
-            command_response("session_id", type=CmdResponseType.OK, counter=0),
-        )
-        time.sleep(5)
 
     def tearDown(self):
         subprocess.run(["docker", "compose", "down"])

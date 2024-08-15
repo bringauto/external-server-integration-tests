@@ -1,6 +1,8 @@
 from typing import Optional
 import enum
 
+from tests.broker import MQTTBrokerTest
+
 from InternalProtocol_pb2 import (  # type: ignore
     Device as _Device,
     DeviceStatus as _DeviceStatus,
@@ -58,9 +60,9 @@ def device_obj(module_id: int, type: int, role: str, name: str, priority: int = 
 def status(
     session_id: str,
     state: _Status.DeviceState,
-    counter: int,
     device: _Device,
-    payload: bytes = b"",
+    payload: bytes,
+    counter: int,
     error_message: Optional[bytes] = None,
 ) -> _ExternalClientMsg:
 
@@ -72,3 +74,15 @@ def status(
         errorMessage=error_message,
     )
     return _ExternalClientMsg(status=status).SerializeToString()
+
+
+class CarMsgSender:
+
+    def __init__(self, broker: MQTTBrokerTest, company: str, car: str) -> None:
+        self._broker = broker
+        self._company = company
+        self._car = car
+
+    def post(self, msg: _ExternalClientMsg) -> None:
+        topic = f"{self._company}/{self._car}/module_gateway"
+        self._broker.publish(topic, msg)
