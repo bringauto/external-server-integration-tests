@@ -3,8 +3,8 @@
   "car_name": "car_a",
   "mqtt_address": "172.17.0.1",
   "mqtt_port": 1883,
-  "mqtt_timeout": 10,
-  "timeout": 10,
+  "mqtt_timeout": 20,
+  "timeout": 20,
   "send_invalid_command": false,
   "sleep_duration_after_connection_refused": 1,
   "log_files_directory": "",
@@ -14,11 +14,11 @@
     "1": {
       "lib_path": "/home/bringauto/modules/mission_module/lib/libmission-external-server-shared.so",
       "config": {
-           "api_url": "http://localhost:8080/v2/protocol",
+           "api_url": "http://http-api:8080/v2/protocol",
            "api_key": "TestAPIKey",
            "max_requests_threshold_count": "10",
            "max_requests_threshold_period_ms": "5000",
-           "delay_after_threshold_reached_ms": "5000",
+           "delay_after_threshold_reached_ms": "2000",
            "retry_requests_delay_ms": "200"
       }
     }

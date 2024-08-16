@@ -1,5 +1,6 @@
 from typing import Optional
 import enum
+import time
 
 from tests.broker import MQTTBrokerTest
 
@@ -36,7 +37,7 @@ def command_response(
         commandResponse=_CommandResponse(
             sessionId=session_id, type=type.value, messageCounter=counter
         )
-    ).SerializeToString()
+    )
 
 
 def connect_msg(session_id: str, company: str, car_name: str, devices: list[_Device]) -> _Connect:
@@ -44,7 +45,7 @@ def connect_msg(session_id: str, company: str, car_name: str, devices: list[_Dev
         connect=_Connect(
             sessionId=session_id, company=company, vehicleName=car_name, devices=devices
         )
-    ).SerializeToString()
+    )
 
 
 def device_obj(module_id: int, type: int, role: str, name: str, priority: int = 0) -> _Device:
@@ -73,16 +74,18 @@ def status(
         deviceStatus=_DeviceStatus(device=device, statusData=payload),
         errorMessage=error_message,
     )
-    return _ExternalClientMsg(status=status).SerializeToString()
+    return _ExternalClientMsg(status=status)
 
 
-class CarMsgSender:
+class CarMsgSenderTest:
 
     def __init__(self, broker: MQTTBrokerTest, company: str, car: str) -> None:
         self._broker = broker
         self._company = company
         self._car = car
 
-    def post(self, msg: _ExternalClientMsg) -> None:
+    def post(self, msg: _ExternalClientMsg, sleep_after: float = 0.0) -> None:
         topic = f"{self._company}/{self._car}/module_gateway"
-        self._broker.publish(topic, msg)
+        msg_str = msg.SerializeToString()
+        self._broker.publish(topic, msg_str)
+        time.sleep(max(sleep_after, 0.0))

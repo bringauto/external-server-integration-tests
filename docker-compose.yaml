@@ -12,45 +12,47 @@ services:
       - "./config/external-server:/home/bringauto/external_server/config"
       - "./log/external-server:/home/bringauto/external_server/log"
     restart: "no"
+    depends_on:
+      - http-api
     networks:
       - external-server-test
 
-#   http-api:
-#     image: bringauto/fleet-protocol-http-api:v2.6.0
-#     ports:
-#       - 8080:8080
-#     restart: "no"
-#     depends_on:
-#       postgresql-database:
-#         condition: service_healthy
-#     networks:
-#       - external-server-test
-#     volumes:
-#       - ./config/http-api/config.json:/usr/src/app/config.json
-#     entrypoint:
-#       [
-#         "python3",
-#         "-m",
-#         "server",
-#         "config.json",
-#         "--location=postgresql-database",
-#       ]
+  http-api:
+    image: bringauto/fleet-protocol-http-api:v2.6.0
+    ports:
+      - 8080:8080
+    restart: "no"
+    depends_on:
+      postgresql-database:
+        condition: service_healthy
+    networks:
+      - external-server-test
+    volumes:
+      - ./config/http-api/config.json:/usr/src/app/config.json
+    entrypoint:
+      [
+        "python3",
+        "-m",
+        "server",
+        "config.json",
+        "--location=postgresql-database",
+      ]
 
-#   postgresql-database:
-#     image: postgres:16
-#     environment:
-#       POSTGRES_USER: postgres
-#       POSTGRES_PASSWORD: 1234
-#     restart: "no"
-#     healthcheck:
-#       test: ["CMD-SHELL", "pg_isready"]
-#       interval: 5s
-#     networks:
-#       - external-server-test
-#     ports:
-#       - 5432:5432
-#     volumes:
-#       - ./db/insert_test_api_key.sh:/docker-entrypoint-initdb.d/insert_test_api_key.sh
+  postgresql-database:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    restart: "no"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 3s
+    networks:
+      - external-server-test
+    ports:
+      - 5432:5432
+    volumes:
+      - ./db/insert_test_api_key.sh:/docker-entrypoint-initdb.d/insert_test_api_key.sh
 
 networks:
   external-server-test:
