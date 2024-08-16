@@ -3,7 +3,6 @@ import enum
 import time
 
 from tests.broker import MQTTBrokerTest
-
 from InternalProtocol_pb2 import (  # type: ignore
     Device as _Device,
     DeviceStatus as _DeviceStatus,
@@ -16,9 +15,10 @@ from ExternalProtocol_pb2 import (  # type: ignore
     ExternalServer as _ExternalServerMsg,
     Status as _Status,
 )
+from .autonomy_messages.MissionModule_pb2 import AutonomyStatus, Position, Station  # type: ignore
 
 
-class DeviceState(enum.Enum):
+class State(enum.Enum):
     CONNECTING = _Status.CONNECTING
     RUNNING = _Status.RUNNING
     DISCONNECT = _Status.DISCONNECT
@@ -62,22 +62,60 @@ def status(
     session_id: str,
     state: _Status.DeviceState,
     device: _Device,
-    payload: bytes,
     counter: int,
+    payload: Optional[AutonomyStatus] = None,
     error_message: Optional[bytes] = None,
 ) -> _ExternalClientMsg:
 
+    if payload is None:
+        payload = AutonomyStatus()
     status = _Status(
         sessionId=session_id,
         deviceState=state.value,
         messageCounter=counter,
-        deviceStatus=_DeviceStatus(device=device, statusData=payload),
+        deviceStatus=_DeviceStatus(device=device, statusData=payload.SerializeToString()),
         errorMessage=error_message,
     )
     return _ExternalClientMsg(status=status)
 
 
-class CarMsgSenderTest:
+def status_payload(
+    state: AutonomyStatus.State = AutonomyStatus.DRIVE,
+    speed: float = 1.0,
+    fuel: float = 0.65,
+    car_longitude: float = 49.1,
+    car_latitude: float = 17.05,
+    car_altitude: float = 123.4,
+    next_stop_name: str = "stop_a",
+    stop_longitude: float = 49.2,
+    stop_latitude: float = 17.1,
+    stop_altitude: float = 200.0
+) -> AutonomyStatus:
+
+    return AutonomyStatus(
+        telemetry=AutonomyStatus.Telemetry(
+            speed=speed,
+            fuel=fuel,
+            position=Position(
+                longitude=car_longitude,
+                latitude=car_latitude,
+                altitude=car_altitude
+            )
+        ),
+        state=state,
+        nextStop=Station(
+            name=next_stop_name,
+            position=Position(
+                longitude=stop_longitude,
+                latitude=stop_latitude,
+                altitude=stop_altitude
+            )
+        )
+    )
+
+
+
+class ExternalClientMock:
 
     def __init__(self, broker: MQTTBrokerTest, company: str, car: str) -> None:
         self._broker = broker
