@@ -18,11 +18,19 @@ from ExternalProtocol_pb2 import (  # type: ignore
 from .autonomy_messages.MissionModule_pb2 import AutonomyStatus, Position, Station  # type: ignore
 
 
-class State(enum.Enum):
+class DeviceState(enum.Enum):
     CONNECTING = _Status.CONNECTING
     RUNNING = _Status.RUNNING
     DISCONNECT = _Status.DISCONNECT
     ERROR = _Status.ERROR
+
+
+class AutonomyState(enum.Enum):
+    DRIVE = AutonomyStatus.DRIVE
+    ERROR = AutonomyStatus.ERROR
+    IDLE = AutonomyStatus.IDLE
+    IN_STOP = AutonomyStatus.IN_STOP
+    OBSTACLE = AutonomyStatus.OBSTACLE
 
 
 class CmdResponseType(enum.Enum):
@@ -79,40 +87,30 @@ def status(
     return _ExternalClientMsg(status=status)
 
 
-def status_payload(
-    state: AutonomyStatus.State = AutonomyStatus.DRIVE,
-    speed: float = 1.0,
-    fuel: float = 0.65,
-    car_longitude: float = 49.1,
-    car_latitude: float = 17.05,
-    car_altitude: float = 123.4,
+def position(longitude: float = 49.1, latitude: float = 16.05, altitude: float = 123.4) -> Position:
+    """Return a Position message for telemetry and stops used for creating messages for tests."""
+    return Position(longitude=longitude, latitude=latitude, altitude=altitude)
+
+
+def telemetry(
+    speed: float = 4.5, fuel: float = 0.85, position: Position = position()
+) -> AutonomyStatus.Telemetry:
+    """Return a telemetry object for the AutonomyStatus message."""
+    return AutonomyStatus.Telemetry(speed=speed, fuel=fuel, position=position)
+
+
+def status_data(
+    state: AutonomyState = AutonomyState.DRIVE,
+    telemetry: AutonomyStatus.Telemetry = telemetry(),
     next_stop_name: str = "stop_a",
-    stop_longitude: float = 49.2,
-    stop_latitude: float = 17.1,
-    stop_altitude: float = 200.0
+    next_stop_position: Position = position(),
 ) -> AutonomyStatus:
-
+    """Return a AutonomyStatus message to be included in ExternalClient message used in tests."""
     return AutonomyStatus(
-        telemetry=AutonomyStatus.Telemetry(
-            speed=speed,
-            fuel=fuel,
-            position=Position(
-                longitude=car_longitude,
-                latitude=car_latitude,
-                altitude=car_altitude
-            )
-        ),
-        state=state,
-        nextStop=Station(
-            name=next_stop_name,
-            position=Position(
-                longitude=stop_longitude,
-                latitude=stop_latitude,
-                altitude=stop_altitude
-            )
-        )
+        telemetry=telemetry,
+        state=state.value,
+        nextStop=Station(name=next_stop_name, position=next_stop_position),
     )
-
 
 
 class ExternalClientMock:
@@ -122,8 +120,8 @@ class ExternalClientMock:
         self._company = company
         self._car = car
 
-    def post(self, msg: _ExternalClientMsg, sleep_after: float = 0.0) -> None:
+    def post(self, msg: _ExternalClientMsg, sleep: float = 0.0) -> None:
         topic = f"{self._company}/{self._car}/module_gateway"
         msg_str = msg.SerializeToString()
         self._broker.publish(topic, msg_str)
-        time.sleep(max(sleep_after, 0.0))
+        time.sleep(max(sleep, 0.0))
