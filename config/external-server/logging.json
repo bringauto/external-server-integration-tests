@@ -27,7 +27,7 @@
       "handlers": ["console", "file"],
       "propagate": false
     },
-    "external_server.adapters.mqtt_adapter": {
+    "external_server.adapters.mqtt.adapter": {
       "level": "DEBUG",
       "handlers": ["console", "file"],
       "propagate": false
@@ -37,7 +37,7 @@
       "handlers": ["console", "file"],
       "propagate": false
     },
-    "external_server.adapters.api_adapter": {
+    "external_server.adapters.api.adapter": {
       "level": "DEBUG",
       "handlers": ["console", "file"],
       "propagate": false
@@ -48,11 +48,6 @@
       "propagate": false
     },
     "CommandWaitingThread": {
-      "level": "DEBUG",
-      "handlers": ["console", "file"],
-      "propagate": false
-    },
-    "tests.utils._mqtt_broker_test": {
       "level": "DEBUG",
       "handlers": ["console", "file"],
       "propagate": false
