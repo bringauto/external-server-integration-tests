@@ -40,36 +40,21 @@ def clear_logs() -> None:
         os.remove("./log/module-gateway/ModuleGateway.log")
 
 
-AUTONOMY_DEVICE_ID = {"module_id": 1, "type": 1, "role": "driving", "name": "Autonomy", "priority": 0}
+autonomy = device_obj(module_id=1, type=1, role="driving", name="Autonomy", priority=0)
+autonomy_id = device_id(module_id=1, type=1, role="driving", name="Autonomy")
 API_HOST = "http://localhost:8080/v2/protocol"
-
-
-class Test_Creating_Command(unittest.TestCase):
-
-    def test_command(self):
-        cmd = api_command(
-            device_id=device_id(1, 1, "driving", "Autonomy"),
-            action=Action.START,
-            stops=[station("stop_a", position(49.1, 16.0, 123.4))],
-            route="route_1"
-        )
-        print(cmd)
 
 
 class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
 
-    build = True
-
     def setUp(self) -> None:
         clear_logs()
         self.broker = MQTTBrokerTest(start=True)
-        run_from_docker_compose(build=self.build)
-        self.built = False
-        time.sleep(0.5)
+        self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
         self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
-        self.ext_client = ExternalClientMock(self.broker, "company_x", "car_a")
-        self.autonomy = device_obj(**AUTONOMY_DEVICE_ID)  # type: ignore
-        self._run_connect_sequence(self.autonomy, self.ext_client)
+        run_from_docker_compose()
+        self._run_connect_sequence(autonomy=autonomy, ext_client=self.ec)
+        time.sleep(1)
 
     def test_status_sent_after_successful_connect_sequence_from_device_is_available_on_api(self):
         # send status message
@@ -78,9 +63,10 @@ class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
             telemetry=telemetry(4.5, 0.85, position(49.5, 16.14, 123.5)),
             next_stop=station("stop_a", position(49.1, 16.0, 123.4))
         )
-        self.ext_client.post(
-            status("session_id", DeviceState.RUNNING, self.autonomy, 1, payload), sleep=0.1
+        self.ec.post(
+            status("session_id", DeviceState.RUNNING, autonomy, 1, payload), sleep=0.1
         )
+        time.sleep(0.5)
         data_on_api = self.api_client.get_statuses()[-1].payload.data.to_dict()
         data_sent = MessageToDict(payload)
         self.assertEqual(data_on_api["state"], data_sent["state"])
@@ -95,10 +81,11 @@ class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
             route="route_1"
         )
         with futures.ThreadPoolExecutor() as ex:
+            s = self.api_client.get_statuses()
+            self.assertEqual(len(s), 1)
             f = ex.submit(self.broker.collect_published, topic="company_x/car_a/external_server", n=1)
             self.api_client.post_commands(cmd)
-            time.sleep(0.5)
-            self.assertEqual(len(f.result()), 1)
+            time.sleep(1)
             msg = f.result()[0]
             msg = ExternalServerMsg.FromString(msg.payload)
             self.assertEqual(msg.command.deviceCommand.device.deviceName, "Autonomy")
@@ -111,8 +98,8 @@ class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
         self.broker.stop()
 
     def _run_connect_sequence(self, autonomy: Device, ext_client: ExternalClientMock) -> None:
-        ext_client.post(connect_msg("session_id", "company_x", "car_a", [autonomy]), sleep=0.1)
-        ext_client.post(status("session_id", DeviceState.CONNECTING, autonomy, 0), sleep=0.1)
+        ext_client.post(connect_msg("session_id", "company_x", "car_a", [autonomy]), sleep=0.2)
+        ext_client.post(status("session_id", DeviceState.CONNECTING, autonomy, 0), sleep=0.2)
         ext_client.post(command_response("session_id", CmdResponseType.OK, 0))
 
 

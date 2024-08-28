@@ -205,6 +205,7 @@ sys.path.append("lib/fleet-protocol/protobuf/compiled/python")
 
 def run_from_docker_compose(build: bool = False) -> None:
     subprocess.run(["docker", "compose", "up", "--build", "-d"])
+    time.sleep(1)
 
 
 class ApiClientTest:
@@ -233,9 +234,10 @@ class ApiClientTest:
 
     def post_commands(self, *commands: Message) -> None:
         """Post list of commands to the API."""
-        self._message_api.send_commands(
+        resp = self._message_api.send_commands_with_http_info(
             company_name=self._company, car_name=self._car, message=list(commands)
         )
+        print("API Client Mock response on post command request: ", resp)
 
     def post_statuses(self, *statuses: Message) -> None:
         """Post list of commands to the API."""

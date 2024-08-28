@@ -2,7 +2,6 @@ import unittest
 import sys
 import subprocess
 import time
-from concurrent import futures
 
 sys.path.append(".")
 
@@ -35,14 +34,11 @@ API_HOST = "http://localhost:8080/v2/protocol"
 
 class Test_Connection_Sequence(unittest.TestCase):
 
-    build = True
-
     def setUp(self) -> None:
         self.broker = MQTTBrokerTest(start=True)
         self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
         self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
-        run_from_docker_compose(build=self.build)
-        self.build = False
+        run_from_docker_compose()
         time.sleep(1)
 
     def test_sending_connect_message_statuses_and_commands_makes_successful_connect_sequence(self):
