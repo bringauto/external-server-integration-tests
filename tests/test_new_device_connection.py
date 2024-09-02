@@ -3,34 +3,23 @@ import sys
 import subprocess
 import os
 import time
-from google.protobuf.json_format import MessageToDict  # type: ignore
 import json
 
 sys.path.append(".")
 
-from tests.broker import MQTTBrokerTest
-from tests.utils import ApiClientTest
-from tests.utils import (
-    Action,
-    api_command,
+from tests.utils.broker import MQTTBrokerTest
+from tests.utils.mocks import ApiClientTest, ExternalClientMock, run_from_docker_compose
+from tests.utils.messages import (
     command_response,
     connect_msg,
     device_obj,
     CmdResponseType,
-    AutonomyState,
     AutonomyStatus,
     Device,
     device_id,
     DeviceState,
-    ExternalClientMock,
-    position,
-    run_from_docker_compose,
     status,
-    station,
-    status_data,
-    telemetry,
 )
-from ExternalProtocol_pb2 import ExternalServer as ExternalServerMsg  # type: ignore
 
 
 def clear_logs() -> None:
@@ -60,7 +49,9 @@ class Test_New_Supported_Device_Connecting_After_Connect_Sequence(unittest.TestC
         self._run_connect_sequence(autonomy=autonomy, ext_client=self.ec)
         time.sleep(1)
 
-    def test_connecting_status_sent_after_successful_connect_sequence_from_device_is_available_on_api(self):
+    def test_connecting_status_sent_after_successful_connect_sequence_from_device_is_available_on_api(
+        self,
+    ):
         payload = {"data": [[], [], {"butPr": 0}]}
         connect_status = status(
             session_id="session_id",
@@ -176,7 +167,6 @@ class Test_New_Unsupported_Device_Connecting_After_Connect_Sequence(unittest.Tes
             status("session_id", DeviceState.CONNECTING, autonomy, 0, payload), sleep=0.2
         )
         ext_client.post(command_response("session_id", CmdResponseType.OK, 0))
-
 
 
 if __name__ == "__main__":  # pragma: no cover

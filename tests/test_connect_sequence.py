@@ -5,15 +5,18 @@ import time
 
 sys.path.append(".")
 
-from tests.broker import MQTTBrokerTest
-from tests.utils import (
+from tests.utils.broker import MQTTBrokerTest
+from tests.utils.mocks import (
+    ApiClientTest,
+    ExternalClientMock,
+    run_from_docker_compose,
+)
+from tests.utils.messages import (
     Action,
     AutonomyState,
     AutonomyStatus,
-    ApiClientTest,
     CmdResponseType,
     DeviceState,
-    ExternalClientMock,
     api_command,
     api_status,
     command_response,
@@ -22,8 +25,7 @@ from tests.utils import (
     device_obj,
     status,
     station,
-    position,
-    run_from_docker_compose,
+    position
 )
 
 

@@ -8,9 +8,9 @@ from google.protobuf.json_format import MessageToDict  # type: ignore
 
 sys.path.append(".")
 
-from tests.broker import MQTTBrokerTest
-from tests.utils import ApiClientTest
-from tests.utils import (
+from tests.utils.broker import MQTTBrokerTest
+from tests.utils.mocks import ApiClientTest, ExternalClientMock, run_from_docker_compose
+from tests.utils.messages import (
     Action,
     api_command,
     command_response,
@@ -22,9 +22,7 @@ from tests.utils import (
     Device,
     device_id,
     DeviceState,
-    ExternalClientMock,
     position,
-    run_from_docker_compose,
     status,
     station,
     status_data,
