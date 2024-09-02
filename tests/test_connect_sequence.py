@@ -1,6 +1,5 @@
 import unittest
 import sys
-import subprocess
 import time
 
 sys.path.append(".")
@@ -9,7 +8,8 @@ from tests.utils.broker import MQTTBrokerTest
 from tests.utils.mocks import (
     ApiClientTest,
     ExternalClientMock,
-    run_from_docker_compose,
+    docker_compose_up,
+    docker_compose_down
 )
 from tests.utils.messages import (
     Action,
@@ -34,14 +34,16 @@ autonomy_id = device_id(module_id=1, type=1, role="driving", name="Autonomy")
 API_HOST = "http://localhost:8080/v2/protocol"
 
 
+_broker = MQTTBrokerTest()
+
+
 class Test_Connection_Sequence(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.broker = MQTTBrokerTest(start=True)
+        self.broker = _broker
         self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
         self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
-        run_from_docker_compose()
-        time.sleep(1)
+        docker_compose_up()
         self.payload = AutonomyStatus().SerializeToString()
 
     def test_sending_connect_message_statuses_and_commands_makes_successful_connect_sequence(self):
@@ -87,7 +89,7 @@ class Test_Connection_Sequence(unittest.TestCase):
                 next_stop=station("stop_a", position(49.1, 16.0, 123.4)),
             )
         )
-        time.sleep(1)
+        time.sleep(0.5)
         statuses = self.api_client.get_statuses()
         self.assertEqual(len(statuses), 1)
         self.api_client.post_commands(
@@ -110,7 +112,7 @@ class Test_Connection_Sequence(unittest.TestCase):
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.2)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         self.ec.post(command_response("id", CmdResponseType.OK, 0))
-        time.sleep(1)
+        time.sleep(0.5)
         statuses = self.api_client.get_statuses()
         self.assertEqual(statuses[-1].device_id.module_id, autonomy.module)
         self.assertEqual(statuses[-1].device_id.type, autonomy.deviceType)
@@ -121,9 +123,10 @@ class Test_Connection_Sequence(unittest.TestCase):
         self.assertEqual(len(statuses), 2)
 
     def tearDown(self):
-        subprocess.run(["docker", "compose", "down"])
-        self.broker.stop()
+        docker_compose_down()
 
 
 if __name__ == "__main__":  # pragma: no cover
+    _broker.start()
     unittest.main()
+    _broker.stop()

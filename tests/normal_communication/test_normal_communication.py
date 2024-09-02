@@ -1,6 +1,5 @@
 import unittest
 import sys
-import subprocess
 import os
 import time
 from concurrent import futures
@@ -9,7 +8,7 @@ from google.protobuf.json_format import MessageToDict  # type: ignore
 sys.path.append(".")
 
 from tests.utils.broker import MQTTBrokerTest
-from tests.utils.mocks import ApiClientTest, ExternalClientMock, run_from_docker_compose
+from tests.utils.mocks import ApiClientTest, ExternalClientMock, docker_compose_up, docker_compose_down
 from tests.utils.messages import (
     Action,
     api_command,
@@ -43,16 +42,18 @@ autonomy_id = device_id(module_id=1, type=1, role="driving", name="Autonomy")
 API_HOST = "http://localhost:8080/v2/protocol"
 
 
+_broker = MQTTBrokerTest()
+
+
 class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
 
     def setUp(self) -> None:
         clear_logs()
-        self.broker = MQTTBrokerTest(start=True)
+        self.broker = _broker
         self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
         self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
-        run_from_docker_compose()
+        docker_compose_up()
         self._run_connect_sequence(autonomy=autonomy, ext_client=self.ec)
-        time.sleep(1)
 
     def test_status_sent_after_successful_connect_sequence_from_device_is_available_on_api(self):
         # send status message
@@ -85,7 +86,7 @@ class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
                 self.broker.collect_published, topic="company_x/car_a/external_server", n=1
             )
             self.api_client.post_commands(cmd)
-            time.sleep(1)
+            time.sleep(0.5)
             msg = f.result()[0]
             msg = ExternalServerMsg.FromString(msg.payload)
             self.assertEqual(msg.command.deviceCommand.device.deviceName, "Autonomy")
@@ -94,11 +95,10 @@ class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
             self.assertEqual(msg.command.deviceCommand.device.module, 1)
 
     def tearDown(self):
-        subprocess.run(["docker", "compose", "down"])
-        self.broker.stop()
+        docker_compose_down()
 
     def _run_connect_sequence(self, autonomy: Device, ext_client: ExternalClientMock) -> None:
-        ext_client.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.2)
+        ext_client.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
         ext_client.post(
             status(
                 "id",
@@ -107,10 +107,12 @@ class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
                 0,
                 payload=AutonomyStatus().SerializeToString(),
             ),
-            sleep=0.2,
+            sleep=0.1,
         )
-        ext_client.post(command_response("id", CmdResponseType.OK, 0))
+        ext_client.post(command_response("id", CmdResponseType.OK, 0), sleep=0.5)
 
 
 if __name__ == "__main__":  # pragma: no cover
+    _broker.start()
     unittest.main()
+    _broker.stop()

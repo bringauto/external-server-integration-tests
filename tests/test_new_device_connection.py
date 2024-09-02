@@ -1,6 +1,5 @@
 import unittest
 import sys
-import subprocess
 import os
 import time
 import json
@@ -8,7 +7,7 @@ import json
 sys.path.append(".")
 
 from tests.utils.broker import MQTTBrokerTest
-from tests.utils.mocks import ApiClientTest, ExternalClientMock, run_from_docker_compose
+from tests.utils.mocks import ApiClientTest, ExternalClientMock, docker_compose_up, docker_compose_down
 from tests.utils.messages import (
     command_response,
     connect_msg,
@@ -38,16 +37,18 @@ button = device_obj(module_id=2, type=3, role="button", name="Button", priority=
 button_id = device_id(module_id=2, type=3, role="button", name="Button")
 
 
+_broker = MQTTBrokerTest()
+
+
 class Test_New_Supported_Device_Connecting_After_Connect_Sequence(unittest.TestCase):
 
     def setUp(self) -> None:
         clear_logs()
-        self.broker = MQTTBrokerTest(start=True)
+        self.broker = _broker
         self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
         self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
-        run_from_docker_compose()
+        docker_compose_up()
         self._run_connect_sequence(autonomy=autonomy, ext_client=self.ec)
-        time.sleep(1)
 
     def test_connecting_status_sent_after_successful_connect_sequence_from_device_is_available_on_api(
         self,
@@ -101,8 +102,7 @@ class Test_New_Supported_Device_Connecting_After_Connect_Sequence(unittest.TestC
         self.assertEqual(len(statuses), 3)
 
     def tearDown(self):
-        subprocess.run(["docker", "compose", "down"])
-        self.broker.stop()
+        docker_compose_down()
 
     def _run_connect_sequence(self, autonomy: Device, ext_client: ExternalClientMock) -> None:
         ext_client.post(connect_msg("session_id", "company_x", "car_a", [autonomy]), sleep=0.2)
@@ -121,10 +121,10 @@ class Test_New_Unsupported_Device_Connecting_After_Connect_Sequence(unittest.Tes
 
     def setUp(self) -> None:
         clear_logs()
-        self.broker = MQTTBrokerTest(start=True)
+        self.broker = _broker
         self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
         self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
-        run_from_docker_compose()
+        docker_compose_up()
         self._run_connect_sequence(autonomy=autonomy, ext_client=self.ec)
         time.sleep(1)
 
@@ -157,8 +157,7 @@ class Test_New_Unsupported_Device_Connecting_After_Connect_Sequence(unittest.Tes
         self.assertEqual(statuses[0].device_id, autonomy_id)
 
     def tearDown(self):
-        subprocess.run(["docker", "compose", "down"])
-        self.broker.stop()
+        docker_compose_down()
 
     def _run_connect_sequence(self, autonomy: Device, ext_client: ExternalClientMock) -> None:
         ext_client.post(connect_msg("session_id", "company_x", "car_a", [autonomy]), sleep=0.2)
@@ -170,4 +169,6 @@ class Test_New_Unsupported_Device_Connecting_After_Connect_Sequence(unittest.Tes
 
 
 if __name__ == "__main__":  # pragma: no cover
+    _broker.start()
     unittest.main()
+    _broker.stop()
