@@ -1,7 +1,5 @@
 import unittest
 import sys
-import time
-
 sys.path.append(".")
 
 from tests._utils.broker import MQTTBrokerTest
@@ -12,20 +10,14 @@ from tests._utils.mocks import (
     docker_compose_down
 )
 from tests._utils.messages import (
-    Action,
-    AutonomyState,
     AutonomyStatus,
     CmdResponseType,
     DeviceState,
-    api_command,
-    api_status,
     command_response,
     connect_msg,
     device_id,
     device_obj,
-    status,
-    station,
-    position
+    status
 )
 
 

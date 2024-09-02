@@ -1,12 +1,12 @@
 import unittest
 import sys
-import os
 import time
 from concurrent import futures
 from google.protobuf.json_format import MessageToDict  # type: ignore
 
 sys.path.append(".")
 
+from tests._utils.misc import clear_logs
 from tests._utils.broker import MQTTBrokerTest
 from tests._utils.mocks import ApiClientTest, ExternalClientMock, docker_compose_up, docker_compose_down
 from tests._utils.messages import (
@@ -28,13 +28,6 @@ from tests._utils.messages import (
     telemetry,
 )
 from ExternalProtocol_pb2 import ExternalServer as ExternalServerMsg  # type: ignore
-
-
-def clear_logs() -> None:
-    if os.path.isfile("./log/external-server/external_server.log"):
-        os.remove("./log/external-server/external_server.log")
-    if os.path.isfile("./log/module-gateway/ModuleGateway.log"):
-        os.remove("./log/module-gateway/ModuleGateway.log")
 
 
 autonomy = device_obj(module_id=1, type=1, role="driving", name="Autonomy", priority=0)

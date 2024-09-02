@@ -71,6 +71,8 @@ class MQTTBrokerTest:
                 raise e
 
     def start(self, sleep: float = 1):
+        if self.is_running:
+            print("Test broker is already running.")
         broker_script = self._script_path
         self._process = subprocess.Popen(["python3", broker_script, f"--port={self._port}"])
         print(f"Started test broker on host {self._host} and port {self._port}")
@@ -80,7 +82,9 @@ class MQTTBrokerTest:
 
     def stop(self):
         """Stop the broker process to stop all communication and free up the port."""
-        if self._process:
+        if not self.is_running:
+            print("Test broker is already stopped.")
+        elif self._process:
             self._process.terminate()
             self._process.wait()
             assert self._process.poll() is not None
