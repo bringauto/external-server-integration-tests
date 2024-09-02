@@ -8,3 +8,6 @@
 [submodule "lib/mission-module"]
 	path = lib/mission-module
 	url = https://github.com/bringauto/mission-module.git
+[submodule "lib/io-module"]
+	path = lib/io-module
+	url = https://github.com/bringauto/io-module.git

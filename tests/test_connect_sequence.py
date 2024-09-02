@@ -40,10 +40,11 @@ class Test_Connection_Sequence(unittest.TestCase):
         self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
         run_from_docker_compose()
         time.sleep(1)
+        self.payload = AutonomyStatus().SerializeToString()
 
     def test_sending_connect_message_statuses_and_commands_makes_successful_connect_sequence(self):
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
-        self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0), sleep=0.1)
+        self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         self.ec.post(command_response("id", CmdResponseType.OK, 0), sleep=0.5)
         s = self.api_client.get_statuses()[0]
         self.assertEqual(s.device_id.module_id, autonomy.module)
@@ -57,15 +58,15 @@ class Test_Connection_Sequence(unittest.TestCase):
     def test_sending_connect_msg_twice_stops_sequence_and_prevents_sending_status(self):
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
-        self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0), sleep=0.1)
+        self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         time.sleep(0.5)
         statuses = self.api_client.get_statuses(wait=True)
         self.assertEqual(len(statuses), 0)
 
     def test_sending_status_twice_stops_the_sequence_and_prevents_sending_of_command_via_mqtt(self):
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
-        self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0), sleep=0.1)
-        self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0), sleep=0.1)
+        self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
+        self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         s = self.api_client.get_statuses(wait=True)[0]
         self.assertEqual(s.device_id.module_id, autonomy.module)
         self.assertEqual(s.device_id.type, autonomy.deviceType)
@@ -105,7 +106,7 @@ class Test_Connection_Sequence(unittest.TestCase):
             ),
         )
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.2)
-        self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0), sleep=0.1)
+        self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         self.ec.post(command_response("id", CmdResponseType.OK, 0))
         time.sleep(1)
         statuses = self.api_client.get_statuses()

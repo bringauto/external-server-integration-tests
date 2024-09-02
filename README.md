@@ -31,6 +31,6 @@ git submodule update mission-module --init --recursive
 Then copy the mission module .proto file and compile it into Python a module:
 
 ```bash
-cp lib/mission-module/lib/protobuf-mission-module/MissionModule.proto ./tests/autonomy_messages/ && \
-protoc ./tests/autonomy_messages/MissionModule.proto --python_out=. --pyi_out=.
+cp lib/mission-module/lib/protobuf-mission-module/MissionModule.proto ./tests/messages/mission_module/ && \
+protoc ./tests/messages/mission_module/MissionModule.proto --python_out=. --pyi_out=.
 ```

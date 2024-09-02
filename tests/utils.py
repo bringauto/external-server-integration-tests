@@ -1,9 +1,10 @@
-from typing import Optional
+from typing import Optional, Any
 import enum
 import time
 import subprocess
 
 from google.protobuf.json_format import MessageToDict  # type: ignore
+from google.protobuf import message as _message # type: ignore
 
 from tests.broker import MQTTBrokerTest
 from InternalProtocol_pb2 import (  # type: ignore
@@ -19,7 +20,7 @@ from ExternalProtocol_pb2 import (  # type: ignore
     Status as _Status,
 )
 from fleet_http_client_python import Message, Payload, DeviceId  # type: ignore
-from .autonomy_messages.MissionModule_pb2 import (  # type: ignore
+from .messages.mission_module.MissionModule_pb2 import (  # type: ignore
     AutonomyCommand,
     AutonomyStatus,
     Position,
@@ -131,18 +132,16 @@ def status(
     state: _Status.DeviceState,
     device: Device,
     counter: int,
-    payload: Optional[AutonomyStatus] = None,
+    payload: bytes,
     error_message: Optional[bytes] = None,
 ) -> _ExternalClientMsg:
     """Create a status message sent over MQTT to External Server."""
 
-    if payload is None:
-        payload = AutonomyStatus()
     status = _Status(
         sessionId=session_id,
         deviceState=state.value,
         messageCounter=counter,
-        deviceStatus=DeviceStatus(device=device, statusData=payload.SerializeToString()),
+        deviceStatus=DeviceStatus(device=device, statusData=payload),
         errorMessage=error_message,
     )
     return _ExternalClientMsg(status=status)
