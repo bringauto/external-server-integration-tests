@@ -11,7 +11,7 @@ services:
     volumes:
       - "./config/external-server:/home/bringauto/external_server/config"
       - "./log/external-server:/home/bringauto/external_server/log"
-    restart: "always"
+    restart: "no"
     depends_on:
       - http-api
     networks:
@@ -39,7 +39,7 @@ services:
       ]
 
   postgresql-database:
-    image: postgres:16-alpine
+    image: postgres:16
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1234
