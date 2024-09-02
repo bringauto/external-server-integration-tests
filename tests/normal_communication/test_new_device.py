@@ -6,9 +6,9 @@ import json
 
 sys.path.append(".")
 
-from tests.utils.broker import MQTTBrokerTest
-from tests.utils.mocks import ApiClientTest, ExternalClientMock, docker_compose_up, docker_compose_down
-from tests.utils.messages import (
+from tests._utils.broker import MQTTBrokerTest
+from tests._utils.mocks import ApiClientTest, ExternalClientMock, docker_compose_up, docker_compose_down
+from tests._utils.messages import (
     command_response,
     connect_msg,
     device_obj,
