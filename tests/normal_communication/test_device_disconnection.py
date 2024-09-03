@@ -51,7 +51,7 @@ class Test_Device_Disconnection(unittest.TestCase):
         self.ec.post(status("id", DeviceState.DISCONNECT, button_1, 2, payload))
 
         time.sleep(0.1)
-        timestamp = int(1000*time.time())
+        timestamp = int(1000 * time.time())
 
         self.ec.post(status("id", DeviceState.RUNNING, button_2, 3, payload))
         self.ec.post(status("id", DeviceState.RUNNING, button_1, 4, payload))
@@ -72,28 +72,49 @@ class Test_Device_Disconnection(unittest.TestCase):
         self.ec.post(status("id", DeviceState.CONNECTING, button_2, 1, payload))
         self.ec.post(command_response("id", CmdResponseType.OK, 0))
         self.ec.post(command_response("id", CmdResponseType.OK, 1))
-        time.sleep(0.1)
 
+        time.sleep(0.1)
         self.ec.post(status("id", DeviceState.DISCONNECT, button_1, 2, payload))
 
         time.sleep(0.1)
-
         self.ec.post(status("id", DeviceState.CONNECTING, button_1, 3, payload))
 
         time.sleep(0.1)
-
-        timestamp = int(1000*time.time())
-
         self.ec.post(status("id", DeviceState.RUNNING, button_2, 4, payload))
         self.ec.post(status("id", DeviceState.RUNNING, button_1, 5, payload))
         self.ec.post(status("id", DeviceState.RUNNING, button_2, 6, payload))
         self.ec.post(status("id", DeviceState.RUNNING, button_1, 7, payload))
 
+    def test_connection_sequence_is_repeated_if_all_devices_disconnect(self):
+        self.ec.post(connect_msg("id", "company_x", "car_a", [button_1, button_2]))
+        payload_dict = {"data": [[], [], {"butPr": 0}]}
+        payload = json.dumps(payload_dict).encode()
+        self.ec.post(status("id", DeviceState.CONNECTING, button_1, 0, payload))
+        self.ec.post(status("id", DeviceState.CONNECTING, button_2, 1, payload))
+        self.ec.post(command_response("id", CmdResponseType.OK, 0))
+        self.ec.post(command_response("id", CmdResponseType.OK, 1))
         time.sleep(0.1)
+
+        self.ec.post(status("id", DeviceState.DISCONNECT, button_1, 2, payload))
+        self.ec.post(status("id", DeviceState.DISCONNECT, button_2, 3, payload))
+
+        time.sleep(0.1)
+        self.ec.post(connect_msg("new_id", "company_x", "car_a", [button_1, button_2]))
+        payload_dict = {"data": [[], [], {"butPr": 0}]}
+        payload = json.dumps(payload_dict).encode()
+        self.ec.post(status("new_id", DeviceState.CONNECTING, button_1, 0, payload))
+        self.ec.post(status("new_id", DeviceState.CONNECTING, button_2, 1, payload))
+        self.ec.post(command_response("new_id", CmdResponseType.OK, 0))
+        self.ec.post(command_response("new_id", CmdResponseType.OK, 1))
+        time.sleep(1)
+
+        timestamp = int(1000 * time.time())
+        payload = json.dumps({"data": [[], [], {"butPr": 1}]}).encode()
+        self.ec.post(status("new_id", DeviceState.RUNNING, button_1, 2, payload))
+        time.sleep(0.5)
         statuses = self.api_client.get_statuses(since=timestamp)
-        # the status from button_1 is not present in the list of statuses
-        self.assertEqual(len(statuses), 4)
-        self.assertIn(button_1_id, [status.device_id for status in statuses])
+        self.assertEqual(len(statuses), 1)
+        self.assertEqual(statuses[0].payload.data.to_dict()["data"][2]["butPr"], 1)
 
     def tearDown(self) -> None:
         self.broker.stop()
