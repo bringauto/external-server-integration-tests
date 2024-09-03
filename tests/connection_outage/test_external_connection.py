@@ -42,11 +42,12 @@ class Test_New_Connection_Sequence_Is_Accepted_After_Mqtt_Timeout(unittest.TestC
 
         # mqtt connection times out when no message is published by the external client for a long time
         mqtt_timeout = json.load(open("config/external-server/config.json"))["mqtt_timeout"]
-        time.sleep(mqtt_timeout/2)
+        time.sleep(mqtt_timeout + 0.1)
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.2)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         self.ec.post(command_response("id", CmdResponseType.OK, 0))
 
+        time.sleep(1)
         s = self.api_client.get_statuses()
         self.assertEqual(len(s), 2)
 

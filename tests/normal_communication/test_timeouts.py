@@ -51,55 +51,33 @@ class Test_Message_Timeout(unittest.TestCase):
     def test_not_receiving_skipped_status_until_timeout_allows_for_new_connect_sequence_with_new_session_id(
         self,
     ):
-        self.ec.post(
-            status("id", DeviceState.RUNNING, autonomy, 1, AutonomyStatus().SerializeToString()),
-            sleep=0.1,
-        )
-        self.ec.post(
-            status("id", DeviceState.RUNNING, autonomy, 3, AutonomyStatus().SerializeToString()),
-            sleep=0.1,
-        )
+        payload = AutonomyStatus().SerializeToString()
+        self.ec.post(status("id", DeviceState.RUNNING, autonomy, 1, payload), sleep=0.1)
+        self.ec.post(status("id", DeviceState.RUNNING, autonomy, 3, payload), sleep=0.1)
         time.sleep(self.msg_timeout)
         # timeout is reached, new connection sequence below is accepted
-        time.sleep(
-            1
-        )  # sleep to let the server clear its context and prepare for new connection sequence
+        time.sleep(1)
         self._run_connect_sequence(session_id="new_id", autonomy=autonomy, ext_client=self.ec)
         timestamp = int(time.time() * 1000)
+        payload = AutonomyStatus().SerializeToString()
         # status is published with new session id and forwared to the API
-        self.ec.post(
-            status(
-                "new_id", DeviceState.RUNNING, autonomy, 1, AutonomyStatus().SerializeToString()
-            ),
-            sleep=0.1,
-        )
+        self.ec.post(status("new_id", DeviceState.RUNNING, autonomy, 1, payload), sleep=0.1)
         time.sleep(0.5)
         s = self.api_client.get_statuses(since=timestamp)
         self.assertEqual(len(s), 1)
 
-    def test_not_receiving_command_response_until_timeout_allows_for_new_connect_sequence_with_new_session_id(
-        self,
-    ):
+    def test_not_receiving_cmd_response_allows_for_new_connect_seq_with_new_session_id(self):
+        payload = AutonomyStatus().SerializeToString()
         self.api_client.post_commands(api_command(autonomy_id, Action.NO_ACTION, [], ""))
         time.sleep(self.msg_timeout / 2)
-        self.ec.post(
-            status("id", DeviceState.RUNNING, autonomy, 1, AutonomyStatus().SerializeToString()),
-            sleep=0.1,
-        )
+        self.ec.post(status("id", DeviceState.RUNNING, autonomy, 1, payload), sleep=0.1)
         time.sleep(self.msg_timeout / 2)
         # timeout is reached, new connection sequence below is accepted
-        time.sleep(
-            1
-        )  # sleep to let the server clear its context and prepare for new connection sequence
+        time.sleep(1)
         self._run_connect_sequence(session_id="new_id", autonomy=autonomy, ext_client=self.ec)
         timestamp = int(time.time() * 1000)
         # status is published with new session id and forwared to the API
-        self.ec.post(
-            status(
-                "new_id", DeviceState.RUNNING, autonomy, 1, AutonomyStatus().SerializeToString()
-            ),
-            sleep=0.1,
-        )
+        self.ec.post(status("new_id", DeviceState.RUNNING, autonomy, 1, payload), sleep=0.1)
         time.sleep(0.5)
         s = self.api_client.get_statuses(since=timestamp)
         self.assertEqual(len(s), 1)
@@ -111,10 +89,8 @@ class Test_Message_Timeout(unittest.TestCase):
         self, session_id: str, autonomy: Device, ext_client: ExternalClientMock
     ) -> None:
         ext_client.post(connect_msg(session_id, "company_x", "car_a", [autonomy]), sleep=0.1)
-        empty_status = AutonomyStatus().SerializeToString()
-        ext_client.post(
-            status(session_id, DeviceState.CONNECTING, autonomy, 0, empty_status), sleep=0.1
-        )
+        payload = AutonomyStatus().SerializeToString()
+        ext_client.post((session_id, DeviceState.CONNECTING, autonomy, 0, payload), sleep=0.1)
         ext_client.post(command_response(session_id, CmdResponseType.OK, 0), sleep=0.5)
 
 
