@@ -9,7 +9,7 @@ sys.path.append("lib/fleet-protocol/protobuf/compiled/python")
 
 from fleet_http_client_python import (  # type: ignore
     Configuration,
-    ApiClient,
+    ApiClient as _ApiClient,
     ApiException,
     Message,
     DeviceId,
@@ -21,6 +21,7 @@ from .broker import MQTTBrokerTest
 
 
 def docker_compose_up() -> None:
+    subprocess.run(["docker", "compose", "down", "-t", "0"])
     subprocess.run(["docker", "compose", "up", "--build", "-d"])
     time.sleep(1)
 
@@ -33,7 +34,7 @@ class ApiClientTest:
 
     def __init__(self, host: str, company: str, car: str, api_key: str) -> None:
         self._configuration = Configuration(host=host, api_key={"AdminAuth": api_key})
-        self._api_client = ApiClient(self._configuration)
+        self._api_client = _ApiClient(self._configuration)
         self._message_api = DeviceApi(api_client=self._api_client)
         self._car = car
         self._company = company

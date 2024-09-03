@@ -47,7 +47,7 @@
       "handlers": ["console"],
       "propagate": false
     },
-    "CommandWaitingThread": {
+    "external_server.server_module.command_waiting_thread": {
       "level": "DEBUG",
       "handlers": ["console", "file"],
       "propagate": false
