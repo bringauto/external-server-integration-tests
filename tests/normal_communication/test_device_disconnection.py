@@ -1,6 +1,9 @@
 import unittest
 import time
 import json
+import sys
+
+sys.path.append(".")
 
 from tests._utils.broker import MQTTBrokerTest
 from tests._utils.misc import clear_logs
@@ -46,8 +49,8 @@ class Test_Device_Disconnection(unittest.TestCase):
         self.ec.post(status("id", DeviceState.CONNECTING, button_2, 1, payload))
         self.ec.post(command_response("id", CmdResponseType.OK, 0))
         self.ec.post(command_response("id", CmdResponseType.OK, 1))
-        time.sleep(0.1)
 
+        time.sleep(0.1)
         self.ec.post(status("id", DeviceState.DISCONNECT, button_1, 2, payload))
 
         time.sleep(0.1)
@@ -93,8 +96,8 @@ class Test_Device_Disconnection(unittest.TestCase):
         self.ec.post(status("id", DeviceState.CONNECTING, button_2, 1, payload))
         self.ec.post(command_response("id", CmdResponseType.OK, 0))
         self.ec.post(command_response("id", CmdResponseType.OK, 1))
-        time.sleep(0.1)
 
+        time.sleep(0.1)
         self.ec.post(status("id", DeviceState.DISCONNECT, button_1, 2, payload))
         self.ec.post(status("id", DeviceState.DISCONNECT, button_2, 3, payload))
 
@@ -106,15 +109,25 @@ class Test_Device_Disconnection(unittest.TestCase):
         self.ec.post(status("new_id", DeviceState.CONNECTING, button_2, 1, payload))
         self.ec.post(command_response("new_id", CmdResponseType.OK, 0))
         self.ec.post(command_response("new_id", CmdResponseType.OK, 1))
-        time.sleep(1)
 
+        time.sleep(1)
         timestamp = int(1000 * time.time())
         payload = json.dumps({"data": [[], [], {"butPr": 1}]}).encode()
         self.ec.post(status("new_id", DeviceState.RUNNING, button_1, 2, payload))
+
         time.sleep(0.5)
         statuses = self.api_client.get_statuses(since=timestamp)
         self.assertEqual(len(statuses), 1)
         self.assertEqual(statuses[0].payload.data.to_dict()["data"][2]["butPr"], 1)
+
+    def test_device_is_disconnected_immediatelly_after_receving_command_response_even_though_not_in_order(self):
+        self.ec.post(connect_msg("id", "company_x", "car_a", [button_1, button_2]))
+        payload_dict = {"data": [[], [], {"butPr": 0}]}
+        payload = json.dumps(payload_dict).encode()
+        self.ec.post(status("id", DeviceState.CONNECTING, button_1, 0, payload))
+        self.ec.post(status("id", DeviceState.CONNECTING, button_2, 1, payload))
+        self.ec.post(command_response("id", CmdResponseType.OK, 0))
+        self.ec.post(command_response("id", CmdResponseType.OK, 1))
 
     def tearDown(self) -> None:
         self.broker.stop()
