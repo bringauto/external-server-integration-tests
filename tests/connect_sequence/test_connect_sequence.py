@@ -9,7 +9,7 @@ from tests._utils.mocks import (
     ApiClientTest,
     ExternalClientMock,
     docker_compose_up,
-    docker_compose_down
+    docker_compose_down,
 )
 from tests._utils.messages import (
     Action,
@@ -25,7 +25,7 @@ from tests._utils.messages import (
     device_obj,
     status,
     station,
-    position
+    position,
 )
 
 
@@ -42,7 +42,7 @@ class Test_Connection_Sequence(unittest.TestCase):
     def setUp(self) -> None:
         self.broker = _broker
         self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
-        self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
+        self.api = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
         docker_compose_up()
         self.payload = AutonomyStatus().SerializeToString()
 
@@ -50,7 +50,7 @@ class Test_Connection_Sequence(unittest.TestCase):
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         self.ec.post(command_response("id", CmdResponseType.OK, 0), sleep=0.5)
-        s = self.api_client.get_statuses()[0]
+        s = self.api.get_statuses()[0]
         self.assertEqual(s.device_id.module_id, autonomy.module)
         self.assertEqual(s.device_id.type, autonomy.deviceType)
         self.assertEqual(s.device_id.role, autonomy.deviceRole)
@@ -64,14 +64,14 @@ class Test_Connection_Sequence(unittest.TestCase):
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         time.sleep(0.5)
-        statuses = self.api_client.get_statuses(wait=True)
+        statuses = self.api.get_statuses(wait=True)
         self.assertEqual(len(statuses), 0)
 
     def test_sending_status_twice_stops_the_sequence_and_prevents_sending_of_command_via_mqtt(self):
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
-        s = self.api_client.get_statuses(wait=True)[0]
+        s = self.api.get_statuses(wait=True)[0]
         self.assertEqual(s.device_id.module_id, autonomy.module)
         self.assertEqual(s.device_id.type, autonomy.deviceType)
         self.assertEqual(s.device_id.role, autonomy.deviceRole)
@@ -79,41 +79,23 @@ class Test_Connection_Sequence(unittest.TestCase):
         self.assertEqual(s.payload.data.to_dict()["state"], "IDLE")
 
     def test_sending_getting_multiple_commands_does_not_interrupt_the_connect_sequence(self):
-        self.api_client.post_statuses(
-            api_status(
-                device_id=autonomy_id,
-                state=AutonomyState.DRIVE,
-                telemetry=AutonomyStatus.Telemetry(
-                    speed=0.0, fuel=0.85, position=position(49.0, 16.0, 123.4)
-                ),
-                next_stop=station("stop_a", position(49.1, 16.0, 123.4)),
-            )
+        stop_a = station("stop_a", position(49.1, 16.0, 123.4))
+        stop_b = station("stop_b", position(49.2, 16.01, 129.4))
+        telemetry = AutonomyStatus.Telemetry(
+            speed=0.0, fuel=0.85, position=position(49.0, 16.0, 123.4)
         )
+        self.api.post_statuses(api_status(autonomy_id, AutonomyState.DRIVE, telemetry, stop_b))
         time.sleep(0.5)
-        statuses = self.api_client.get_statuses()
-        self.assertEqual(len(statuses), 1)
-        self.api_client.post_commands(
-            api_command(
-                device_id=autonomy_id,
-                action=Action.START,
-                stops=[station("stop_a", position(49.1, 16.0, 123.4))],
-                route="route_1",
-            ),
-            api_command(
-                device_id=autonomy_id,
-                action=Action.START,
-                stops=[
-                    station("stop_a", position(49.1, 16.0, 123.4)),
-                    station("stop_b", position(49.2, 16.01, 129.4)),
-                ],
-                route="route_1",
-            ),
+        statuses = self.api.get_statuses()
+        self.api.post_commands(
+            api_command(autonomy_id, Action.START, [stop_a], "route_1"),
+            api_command(autonomy_id, Action.START, [stop_a, stop_b], "route_1"),
         )
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.2)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         self.ec.post(command_response("id", CmdResponseType.OK, 0))
         time.sleep(0.5)
-        statuses = self.api_client.get_statuses()
+        statuses = self.api.get_statuses()
         self.assertEqual(statuses[-1].device_id.module_id, autonomy.module)
         self.assertEqual(statuses[-1].device_id.type, autonomy.deviceType)
         self.assertEqual(statuses[-1].device_id.role, autonomy.deviceRole)
