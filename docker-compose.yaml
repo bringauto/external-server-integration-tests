@@ -46,7 +46,7 @@ services:
     restart: "no"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready"]
-      interval: 0.5s
+      interval: 0.75s
     networks:
       - external-server-test
     ports:

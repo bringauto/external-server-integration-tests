@@ -90,7 +90,7 @@ class Test_Message_Timeout(unittest.TestCase):
     ) -> None:
         ext_client.post(connect_msg(session_id, "company_x", "car_a", [autonomy]), sleep=0.1)
         payload = AutonomyStatus().SerializeToString()
-        ext_client.post((session_id, DeviceState.CONNECTING, autonomy, 0, payload), sleep=0.1)
+        ext_client.post(status(session_id, DeviceState.CONNECTING, autonomy, 0, payload), sleep=0.1)
         ext_client.post(command_response(session_id, CmdResponseType.OK, 0), sleep=0.5)
 
 

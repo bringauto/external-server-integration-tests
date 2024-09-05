@@ -48,7 +48,6 @@ class Test_Message_Timeout(unittest.TestCase):
 
     def test_not_receiving_connect_message_resets_connection_sequence(self):
         time.sleep(self.msg_timeout + 0.1)
-
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
         payload = AutonomyStatus().SerializeToString()
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, payload), sleep=0.1)
