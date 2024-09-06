@@ -33,14 +33,11 @@ autonomy_id = device_id(module_id=1, type=1, role="driving", name="Autonomy")
 API_HOST = "http://localhost:8080/v2/protocol"
 
 
-_broker = MQTTBrokerTest()
-
-
 class Test_Message_Timeout(unittest.TestCase):
 
     def setUp(self) -> None:
         clear_logs()
-        self.broker = _broker
+        self.broker = MQTTBrokerTest(start=True)
         self.broker.start()
         self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
         self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
@@ -84,6 +81,7 @@ class Test_Message_Timeout(unittest.TestCase):
 
     def tearDown(self):
         docker_compose_down()
+        self.broker.stop()
 
     def _run_connect_sequence(
         self, session_id: str, autonomy: Device, ext_client: ExternalClientMock
@@ -95,6 +93,4 @@ class Test_Message_Timeout(unittest.TestCase):
 
 
 if __name__ == "__main__":  # pragma: no cover
-    _broker.start()
     unittest.main()
-    _broker.stop()

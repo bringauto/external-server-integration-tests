@@ -130,8 +130,8 @@ class Test_Device_Disconnection(unittest.TestCase):
         self.ec.post(command_response("id", CmdResponseType.OK, 1))
 
     def tearDown(self) -> None:
-        self.broker.stop()
         docker_compose_down()
+        self.broker.stop()
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -43,6 +43,7 @@ class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
     def setUp(self) -> None:
         clear_logs()
         self.broker = _broker
+        self.broker.start()
         self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
         self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
         docker_compose_up()
@@ -89,6 +90,7 @@ class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
 
     def tearDown(self):
         docker_compose_down()
+        self.broker.stop()
 
     def _run_connect_sequence(self, autonomy: Device, ext_client: ExternalClientMock) -> None:
         ext_client.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
@@ -110,6 +112,7 @@ class Test_Messages_From_Unsupported_Device(unittest.TestCase):
     def setUp(self) -> None:
         clear_logs()
         self.broker = _broker
+        self.broker.start()
         self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
         self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
         docker_compose_up()
@@ -128,6 +131,7 @@ class Test_Messages_From_Unsupported_Device(unittest.TestCase):
 
     def tearDown(self):
         docker_compose_down()
+        self.broker.stop()
 
     def _run_connect_sequence(self, autonomy: Device, ext_client: ExternalClientMock) -> None:
         ext_client.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
@@ -145,6 +149,4 @@ class Test_Messages_From_Unsupported_Device(unittest.TestCase):
 
 
 if __name__ == "__main__":  # pragma: no cover
-    _broker.start()
     unittest.main()
-    _broker.stop()

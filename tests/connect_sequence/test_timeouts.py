@@ -92,6 +92,7 @@ class Test_Message_Timeout(unittest.TestCase):
 
     def tearDown(self):
         docker_compose_down()
+        self.broker.stop()
 
     def _run_connect_seq(
         self, session_id: str, autonomy: Device, ext_client: ExternalClientMock

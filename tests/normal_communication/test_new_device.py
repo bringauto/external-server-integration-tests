@@ -45,6 +45,7 @@ class Test_New_Supported_Device_Connecting_After_Connect_Sequence(unittest.TestC
     def setUp(self) -> None:
         clear_logs()
         self.broker = _broker
+        self.broker.start()
         self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
         self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
         docker_compose_up()
@@ -103,6 +104,7 @@ class Test_New_Supported_Device_Connecting_After_Connect_Sequence(unittest.TestC
 
     def tearDown(self):
         docker_compose_down()
+        self.broker.stop()
 
     def _run_connect_sequence(self, autonomy: Device, ext_client: ExternalClientMock) -> None:
         ext_client.post(connect_msg("session_id", "company_x", "car_a", [autonomy]), sleep=0.2)
@@ -122,6 +124,7 @@ class Test_New_Unsupported_Device_Connecting_After_Connect_Sequence(unittest.Tes
     def setUp(self) -> None:
         clear_logs()
         self.broker = _broker
+        self.broker.start()
         self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
         self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
         docker_compose_up()
@@ -158,6 +161,7 @@ class Test_New_Unsupported_Device_Connecting_After_Connect_Sequence(unittest.Tes
 
     def tearDown(self):
         docker_compose_down()
+        self.broker.stop()
 
     def _run_connect_sequence(self, autonomy: Device, ext_client: ExternalClientMock) -> None:
         ext_client.post(connect_msg("session_id", "company_x", "car_a", [autonomy]), sleep=0.2)

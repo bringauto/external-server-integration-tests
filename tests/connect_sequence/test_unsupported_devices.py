@@ -33,6 +33,7 @@ class Test_Unsupported_Device(unittest.TestCase):
 
     def setUp(self) -> None:
         self.broker = _broker
+        self.broker.start()
         self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
         self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
         docker_compose_up()
@@ -64,6 +65,7 @@ class Test_Unsupported_Device(unittest.TestCase):
 
     def tearDown(self):
         docker_compose_down()
+        self.broker.stop()
 
 
 if __name__ == "__main__":  # pragma: no cover

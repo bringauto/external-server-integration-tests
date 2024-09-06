@@ -30,14 +30,13 @@ from tests._utils.messages import (
 API_HOST = "http://localhost:8080/v2/protocol"
 autonomy = device_obj(module_id=1, type=1, role="driving", name="Autonomy", priority=0)
 autonomy_id = device_id(module_id=1, type=1, role="driving", name="Autonomy")
-_broker = MQTTBrokerTest()
 
 
 class Test_Status_Error(unittest.TestCase):
 
     def setUp(self) -> None:
         clear_logs()
-        self.broker = _broker
+        self.broker = MQTTBrokerTest(start=True)
         self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
         self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
         docker_compose_up()
@@ -64,6 +63,7 @@ class Test_Status_Error(unittest.TestCase):
 
     def tearDown(self):
         docker_compose_down()
+        self.broker.stop()
 
     def _run_connect_sequence(self, autonomy: Device, ext_client: ExternalClientMock) -> None:
         ext_client.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)

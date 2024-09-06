@@ -1,28 +1,9 @@
 import os
 import sys
-import subprocess
 import unittest
-
-import coverage
-import coverage.exceptions as _cov_exceptions
 
 
 TEST_DIR_NAME = "tests"
-OMITTED_FILES = ["__init__.py", "./__main__.py"]
-HTML_REPORT_FLAG = "-h"
-
-
-def _report_coverage(cov: coverage.Coverage, html) -> None:
-    if html:
-        cov.html_report()
-        subprocess.run(["open", "htmlcov/index.html"])
-    else:
-        try:
-            cov.report()
-        except _cov_exceptions.NoDataError:
-            print("No data from coverage analysis to report.")
-        except Exception as e:
-            print(f"Problem reporting coverage. {e}")
 
 
 def _run_tests(show_test_names: bool = True) -> None:
@@ -50,13 +31,4 @@ def _run_tests(show_test_names: bool = True) -> None:
 
 
 if __name__ == "__main__":
-    html = False
-    if "-h" in sys.argv:
-        html = True
-        sys.argv.remove("-h")
-    cov = coverage.Coverage(branch=True, omit=OMITTED_FILES)
-    cov.start()
     _run_tests()
-    cov.stop()
-    cov.save()
-    _report_coverage(cov, html)

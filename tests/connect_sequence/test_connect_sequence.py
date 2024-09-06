@@ -34,13 +34,10 @@ autonomy_id = device_id(module_id=1, type=1, role="driving", name="Autonomy")
 API_HOST = "http://localhost:8080/v2/protocol"
 
 
-_broker = MQTTBrokerTest()
-
-
 class Test_Connection_Sequence(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.broker = _broker
+        self.broker = MQTTBrokerTest(start=True)
         self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
         self.api = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
         docker_compose_up()
@@ -106,9 +103,8 @@ class Test_Connection_Sequence(unittest.TestCase):
 
     def tearDown(self):
         docker_compose_down()
+        self.broker.stop()
 
 
 if __name__ == "__main__":  # pragma: no cover
-    _broker.start()
     unittest.main()
-    _broker.stop()

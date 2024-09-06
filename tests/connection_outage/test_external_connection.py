@@ -53,9 +53,8 @@ class Test_New_Connection_Sequence_Is_Accepted_After_Mqtt_Timeout(unittest.TestC
 
     def tearDown(self) -> None:
         docker_compose_down()
+        self.broker.stop()
 
 
 if __name__ == "__main__":  # pragma: no cover
-    _broker.start()
     unittest.main()
-    _broker.stop()
