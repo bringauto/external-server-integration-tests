@@ -1,6 +1,9 @@
 import unittest
 import time
 import json
+import sys
+
+sys.path.append(".")
 
 from tests._utils.misc import clear_logs
 from tests._utils.broker import MQTTBrokerTest
@@ -15,7 +18,6 @@ from tests._utils.messages import (
     device_obj,
     device_id,
     position,
-    station,
     Station,
     status,
     DeviceState,

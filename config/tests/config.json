@@ -1,0 +1,4 @@
+{
+    "EXTERNAL_SERVER_IMAGE": "bringauto/external-server:unit-tests",
+    "FLEET_PROTOCOL_HTTP_API_IMAGE": "bringauto/fleet-protocol-http-api:v2.6.0"
+}

@@ -1,6 +1,6 @@
 services:
   external-server:
-    build: "/home/jiri-strouhal/Plocha/external-server"
+    image: $EXTERNAL_SERVER_IMAGE
     entrypoint:
       [
         "python3",
@@ -18,7 +18,7 @@ services:
       - external-server-test
 
   http-api:
-    image: bringauto/fleet-protocol-http-api:v2.6.0
+    image: $FLEET_PROTOCOL_HTTP_API_IMAGE
     ports:
       - 8080:8080
     restart: "no"

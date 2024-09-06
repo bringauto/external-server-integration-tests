@@ -5,6 +5,7 @@ import time
 from paho.mqtt.client import MQTTMessage as _MQTTMessage
 import paho.mqtt.subscribe as subscribe  # type: ignore
 import paho.mqtt.publish as publish  # type: ignore
+import logging
 
 
 class MQTTBrokerTest:

@@ -14,6 +14,8 @@ The `tests/_utils` folder contains utility functions and classes used in the tes
 
 # Preparation
 
+## Environment and submodules for testing
+
 Create and activate virtual environment, install Python packages:
 
 ```bash
@@ -34,6 +36,13 @@ Copy the mission module .proto file and compile it into Python a module:
 cp lib/mission-module/lib/protobuf-mission-module/MissionModule.proto ./tests/_utils/modules/mission_module/ && \
 protoc ./tests/_utils/modules/mission_module/MissionModule.proto --python_out=. --pyi_out=.
 ```
+
+## Choosing the implementations to be tested
+
+In the `config/tests/config.json` file, set the following:
+
+- `EXTERNAL_SERVER_IMAGE` - the Docker image of the External Server implementation to be tested
+- `FLEET_PROTOCOL_HTTP_API_IMAGE` - the Docker image of the Fleet Protocol HTTP API implementation to be used for the tests
 
 # Running the tests
 
