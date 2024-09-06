@@ -14,7 +14,7 @@ The `tests/_utils` folder contains utility functions and classes used in the tes
 - protoc (version >= 3.21)
 - Docker (version >= 27.0)
 
-# Preparation
+# Setup
 
 ## Environment and submodules for testing
 
