@@ -8,7 +8,8 @@ sys.path.append(".")
 
 from tests._utils.misc import clear_logs
 from tests._utils.broker import MQTTBrokerTest
-from tests._utils.mocks import ApiClientTest, ExternalClientMock, docker_compose_up, docker_compose_down
+from tests._utils.mocks import ApiClientTest, ExternalClientMock
+from tests._utils.docker import docker_compose_up, docker_compose_down
 from tests._utils.messages import (
     Action,
     api_command,
@@ -49,7 +50,9 @@ class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
         docker_compose_up()
         self._run_connect_sequence(autonomy=autonomy, ext_client=self.ec)
 
-    def test_status_sent_after_successful_connect_sequence_from_device_is_available_on_api(self):
+    def test_status_sent_after_successful_connect_sequence_from_device_is_available_on_api(
+        self,
+    ):
         # send status message
         payload = status_data(
             state=AutonomyState.DRIVE,
@@ -57,7 +60,8 @@ class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
             next_stop=station("stop_a", position(49.1, 16.0, 123.4)),
         )
         self.ec.post(
-            status("id", DeviceState.RUNNING, autonomy, 1, payload.SerializeToString()), sleep=0.1
+            status("id", DeviceState.RUNNING, autonomy, 1, payload.SerializeToString()),
+            sleep=0.1,
         )
         time.sleep(0.5)
         data_on_api = self.api_client.get_statuses()[-1].payload.data.to_dict()
@@ -77,7 +81,9 @@ class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
             s = self.api_client.get_statuses()
             self.assertEqual(len(s), 1)
             f = ex.submit(
-                self.broker.collect_published, topic="company_x/car_a/external_server", n=1
+                self.broker.collect_published,
+                topic="company_x/car_a/external_server",
+                n=1,
             )
             self.api_client.post_commands(cmd)
             time.sleep(0.5)
@@ -92,7 +98,9 @@ class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
         docker_compose_down()
         self.broker.stop()
 
-    def _run_connect_sequence(self, autonomy: Device, ext_client: ExternalClientMock) -> None:
+    def _run_connect_sequence(
+        self, autonomy: Device, ext_client: ExternalClientMock
+    ) -> None:
         ext_client.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
         ext_client.post(
             status(
@@ -118,11 +126,37 @@ class Test_Messages_From_Unsupported_Device(unittest.TestCase):
         docker_compose_up()
         self._run_connect_sequence(autonomy=autonomy, ext_client=self.ec)
 
-    def test_messages_from_unsupported_device_are_ignored_and_not_forwarded_to_api(self):
+    def test_messages_from_unsupported_device_are_ignored_and_not_forwarded_to_api(
+        self,
+    ):
         timestamp = int(time.time() * 1000)
-        unsupported_device = device_obj(module_id=1, type=123456789, role="notdriving", name="UnsupportedDevice", priority=0)
-        self.ec.post(status("id", DeviceState.RUNNING, autonomy, 0, AutonomyStatus().SerializeToString()), sleep=0.1)
-        self.ec.post(status("id", DeviceState.CONNECTING, unsupported_device, 0, AutonomyStatus().SerializeToString()), sleep=0.1)
+        unsupported_device = device_obj(
+            module_id=1,
+            type=123456789,
+            role="notdriving",
+            name="UnsupportedDevice",
+            priority=0,
+        )
+        self.ec.post(
+            status(
+                "id",
+                DeviceState.RUNNING,
+                autonomy,
+                0,
+                AutonomyStatus().SerializeToString(),
+            ),
+            sleep=0.1,
+        )
+        self.ec.post(
+            status(
+                "id",
+                DeviceState.CONNECTING,
+                unsupported_device,
+                0,
+                AutonomyStatus().SerializeToString(),
+            ),
+            sleep=0.1,
+        )
         time.sleep(1)
         s = self.api_client.get_statuses(since=timestamp)
         self.assertEqual(len(s), 1)
@@ -133,7 +167,9 @@ class Test_Messages_From_Unsupported_Device(unittest.TestCase):
         docker_compose_down()
         self.broker.stop()
 
-    def _run_connect_sequence(self, autonomy: Device, ext_client: ExternalClientMock) -> None:
+    def _run_connect_sequence(
+        self, autonomy: Device, ext_client: ExternalClientMock
+    ) -> None:
         ext_client.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
         ext_client.post(
             status(

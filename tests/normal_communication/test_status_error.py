@@ -4,12 +4,8 @@ import json
 
 from tests._utils.misc import clear_logs
 from tests._utils.broker import MQTTBrokerTest
-from tests._utils.mocks import (
-    ApiClientTest,
-    ExternalClientMock,
-    docker_compose_up,
-    docker_compose_down,
-)
+from tests._utils.mocks import ApiClientTest, ExternalClientMock
+from tests._utils.docker import docker_compose_up, docker_compose_down
 from tests._utils.messages import (
     AutonomyError,
     AutonomyStatus,
@@ -45,7 +41,9 @@ class Test_Status_Error(unittest.TestCase):
     def test_empty_error_message_is_not_forwarded_to_api(self):
         error = b""
         payload = AutonomyStatus().SerializeToString()
-        self.ec.post(status("id", DeviceState.RUNNING, autonomy, 1, payload, error), sleep=0.1)
+        self.ec.post(
+            status("id", DeviceState.RUNNING, autonomy, 1, payload, error), sleep=0.1
+        )
         time.sleep(0.5)
         messages = self.api_client.get_statuses()[-1].payload.data.to_dict()
         self.assertEqual(len(messages), 1)
@@ -55,20 +53,28 @@ class Test_Status_Error(unittest.TestCase):
             finishedStops=[Station(name="stop_a", position=position())]
         ).SerializeToString()
         payload = AutonomyStatus().SerializeToString()
-        self.ec.post(status("id", DeviceState.RUNNING, autonomy, 1, payload, error), sleep=0.1)
+        self.ec.post(
+            status("id", DeviceState.RUNNING, autonomy, 1, payload, error), sleep=0.1
+        )
         time.sleep(1)
         messages = self.api_client.get_statuses()
         self.assertEqual(messages[-1].payload.message_type, "STATUS_ERROR")
-        self.assertEqual(messages[-1].payload.data.to_dict()["finishedStops"][0]["name"], "stop_a")
+        self.assertEqual(
+            messages[-1].payload.data.to_dict()["finishedStops"][0]["name"], "stop_a"
+        )
 
     def tearDown(self):
         docker_compose_down()
         self.broker.stop()
 
-    def _run_connect_sequence(self, autonomy: Device, ext_client: ExternalClientMock) -> None:
+    def _run_connect_sequence(
+        self, autonomy: Device, ext_client: ExternalClientMock
+    ) -> None:
         ext_client.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
         payload = AutonomyStatus().SerializeToString()
-        ext_client.post(status("id", DeviceState.CONNECTING, autonomy, 0, payload), sleep=0.1)
+        ext_client.post(
+            status("id", DeviceState.CONNECTING, autonomy, 0, payload), sleep=0.1
+        )
         ext_client.post(command_response("id", CmdResponseType.OK, 0), sleep=0.5)
 
 

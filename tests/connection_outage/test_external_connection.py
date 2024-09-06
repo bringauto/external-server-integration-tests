@@ -5,7 +5,7 @@ import time
 from tests._utils.misc import clear_logs
 from tests._utils.broker import MQTTBrokerTest
 from tests._utils.mocks import ApiClientTest, ExternalClientMock
-from tests._utils.mocks import docker_compose_up, docker_compose_down
+from tests._utils.docker import docker_compose_up, docker_compose_down
 from tests._utils.messages import (
     AutonomyStatus,
     command_response,
@@ -35,16 +35,24 @@ class Test_New_Connection_Sequence_Is_Accepted_After_Mqtt_Timeout(unittest.TestC
         docker_compose_up()
         self.payload = AutonomyStatus().SerializeToString()
 
-    def test_new_connection_sequence_is_accepted_after_no_status_was_published_from_ext_client_for_long_time(self):
+    def test_new_connection_sequence_is_accepted_after_no_status_was_published_from_ext_client_for_long_time(
+        self,
+    ):
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.2)
-        self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
+        self.ec.post(
+            status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1
+        )
         self.ec.post(command_response("id", CmdResponseType.OK, 0))
 
         # mqtt connection times out when no message is published by the external client for a long time
-        mqtt_timeout = json.load(open("config/external-server/config.json"))["mqtt_timeout"]
+        mqtt_timeout = json.load(open("config/external-server/config.json"))[
+            "mqtt_timeout"
+        ]
         time.sleep(mqtt_timeout + 0.1)
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.2)
-        self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
+        self.ec.post(
+            status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1
+        )
         self.ec.post(command_response("id", CmdResponseType.OK, 0))
 
         time.sleep(1)

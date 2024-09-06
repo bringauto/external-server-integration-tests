@@ -1,5 +1,4 @@
 import time
-import subprocess
 import sys
 import json
 
@@ -18,16 +17,6 @@ from fleet_http_client_python import (  # type: ignore
 )
 from ExternalProtocol_pb2 import ExternalClient as _ExternalClientMsg  # type: ignore
 from .broker import MQTTBrokerTest
-
-
-def docker_compose_up() -> None:
-    subprocess.run(["docker", "compose", "down", "-t", "0"])
-    subprocess.run(["docker", "compose", "up", "--build", "-d"])
-    time.sleep(1)
-
-
-def docker_compose_down() -> None:
-    subprocess.run(["docker", "compose", "down", "-t", "0"])
 
 
 class ApiClientTest:

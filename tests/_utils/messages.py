@@ -56,7 +56,9 @@ def station(name: str, position: Position) -> dict:
     return {"name": name, "position": MessageToDict(position)}
 
 
-def api_command(device_id: DeviceId, action: Action, stops: list[Station], route: str) -> Message:
+def api_command(
+    device_id: DeviceId, action: Action, stops: list[Station], route: str
+) -> Message:
     """Create a command message."""
     command_data = AutonomyCommand(stops=stops, action=action.value, route=route)
     payload_dict = {
@@ -79,7 +81,9 @@ def api_status(
     next_stop: Station,
 ) -> Message:
     """Create a status message."""
-    status_data = AutonomyStatus(telemetry=telemetry, state=state.value, nextStop=next_stop)
+    status_data = AutonomyStatus(
+        telemetry=telemetry, state=state.value, nextStop=next_stop
+    )
     payload_dict = {
         "encoding": "JSON",
         "message_type": "STATUS",
@@ -103,7 +107,9 @@ def command_response(
     )
 
 
-def connect_msg(session_id: str, company: str, car_name: str, devices: list[Device]) -> _Connect:
+def connect_msg(
+    session_id: str, company: str, car_name: str, devices: list[Device]
+) -> _Connect:
     return _ExternalClientMsg(
         connect=_Connect(
             sessionId=session_id, company=company, vehicleName=car_name, devices=devices
@@ -115,7 +121,9 @@ def device_id(module_id: int, type: int, role: str, name: str, **kwargs) -> Devi
     return DeviceId(module_id=module_id, type=type, role=role, name=name)
 
 
-def device_obj(module_id: int, type: int, role: str, name: str, priority: int = 0) -> Device:
+def device_obj(
+    module_id: int, type: int, role: str, name: str, priority: int = 0
+) -> Device:
     return Device(
         module=module_id,
         deviceType=type,
@@ -145,7 +153,9 @@ def status(
     return _ExternalClientMsg(status=status)
 
 
-def position(longitude: float = 49.1, latitude: float = 16.05, altitude: float = 123.4) -> Position:
+def position(
+    longitude: float = 49.1, latitude: float = 16.05, altitude: float = 123.4
+) -> Position:
     """Return a Position message for telemetry and stops used for creating messages for tests."""
     return Position(longitude=longitude, latitude=latitude, altitude=altitude)
 

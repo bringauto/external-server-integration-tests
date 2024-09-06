@@ -5,12 +5,8 @@ import time
 sys.path.append(".")
 
 from tests._utils.broker import MQTTBrokerTest
-from tests._utils.mocks import (
-    ApiClientTest,
-    ExternalClientMock,
-    docker_compose_up,
-    docker_compose_down,
-)
+from tests._utils.mocks import ApiClientTest, ExternalClientMock
+from tests._utils.docker import docker_compose_up, docker_compose_down
 from tests._utils.messages import (
     Action,
     AutonomyState,
@@ -32,18 +28,22 @@ from tests._utils.messages import (
 autonomy = device_obj(module_id=1, type=1, role="driving", name="Autonomy", priority=0)
 autonomy_id = device_id(module_id=1, type=1, role="driving", name="Autonomy")
 API_HOST = "http://localhost:8080/v2/protocol"
+_broker = MQTTBrokerTest()
 
 
 class Test_Connection_Sequence(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.broker = MQTTBrokerTest(start=True)
+        self.broker = _broker
+        self.broker.start()
         self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
         self.api = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
         docker_compose_up()
         self.payload = AutonomyStatus().SerializeToString()
 
-    def test_sending_connect_message_statuses_and_commands_makes_successful_connect_sequence(self):
+    def test_sending_connect_message_statuses_and_commands_makes_successful_connect_sequence(
+        self,
+    ):
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         self.ec.post(command_response("id", CmdResponseType.OK, 0), sleep=0.5)
@@ -64,7 +64,9 @@ class Test_Connection_Sequence(unittest.TestCase):
         statuses = self.api.get_statuses(wait=True)
         self.assertEqual(len(statuses), 0)
 
-    def test_sending_status_twice_stops_the_sequence_and_prevents_sending_of_command_via_mqtt(self):
+    def test_sending_status_twice_stops_the_sequence_and_prevents_sending_of_command_via_mqtt(
+        self,
+    ):
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
@@ -75,7 +77,9 @@ class Test_Connection_Sequence(unittest.TestCase):
         self.assertEqual(s.device_id.name, autonomy.deviceName)
         self.assertEqual(s.payload.data.to_dict()["state"], "IDLE")
 
-    def test_sending_getting_multiple_commands_does_not_interrupt_the_connect_sequence(self):
+    def test_sending_getting_multiple_commands_does_not_interrupt_the_connect_sequence(
+        self,
+    ):
         stop_a = station("stop_a", position(49.1, 16.0, 123.4))
         stop_b = station("stop_b", position(49.2, 16.01, 129.4))
         telemetry = AutonomyStatus.Telemetry(

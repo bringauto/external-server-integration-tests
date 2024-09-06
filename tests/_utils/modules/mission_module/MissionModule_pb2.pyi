@@ -2,14 +2,22 @@ from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
+from typing import (
+    ClassVar as _ClassVar,
+    Iterable as _Iterable,
+    Mapping as _Mapping,
+    Optional as _Optional,
+    Union as _Union,
+)
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class AutonomyCommand(_message.Message):
     __slots__ = ["action", "route", "stops"]
+
     class Action(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
+
     ACTION_FIELD_NUMBER: _ClassVar[int]
     NO_ACTION: AutonomyCommand.Action
     ROUTE_FIELD_NUMBER: _ClassVar[int]
@@ -19,18 +27,27 @@ class AutonomyCommand(_message.Message):
     action: AutonomyCommand.Action
     route: str
     stops: _containers.RepeatedCompositeFieldContainer[Station]
-    def __init__(self, stops: _Optional[_Iterable[_Union[Station, _Mapping]]] = ..., route: _Optional[str] = ..., action: _Optional[_Union[AutonomyCommand.Action, str]] = ...) -> None: ...
+    def __init__(
+        self,
+        stops: _Optional[_Iterable[_Union[Station, _Mapping]]] = ...,
+        route: _Optional[str] = ...,
+        action: _Optional[_Union[AutonomyCommand.Action, str]] = ...,
+    ) -> None: ...
 
 class AutonomyError(_message.Message):
     __slots__ = ["finishedStops"]
     FINISHEDSTOPS_FIELD_NUMBER: _ClassVar[int]
     finishedStops: _containers.RepeatedCompositeFieldContainer[Station]
-    def __init__(self, finishedStops: _Optional[_Iterable[_Union[Station, _Mapping]]] = ...) -> None: ...
+    def __init__(
+        self, finishedStops: _Optional[_Iterable[_Union[Station, _Mapping]]] = ...
+    ) -> None: ...
 
 class AutonomyStatus(_message.Message):
     __slots__ = ["nextStop", "state", "telemetry"]
+
     class State(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
+
     class Telemetry(_message.Message):
         __slots__ = ["fuel", "position", "speed"]
         FUEL_FIELD_NUMBER: _ClassVar[int]
@@ -39,7 +56,13 @@ class AutonomyStatus(_message.Message):
         fuel: float
         position: Position
         speed: float
-        def __init__(self, speed: _Optional[float] = ..., fuel: _Optional[float] = ..., position: _Optional[_Union[Position, _Mapping]] = ...) -> None: ...
+        def __init__(
+            self,
+            speed: _Optional[float] = ...,
+            fuel: _Optional[float] = ...,
+            position: _Optional[_Union[Position, _Mapping]] = ...,
+        ) -> None: ...
+
     DRIVE: AutonomyStatus.State
     ERROR: AutonomyStatus.State
     IDLE: AutonomyStatus.State
@@ -51,7 +74,12 @@ class AutonomyStatus(_message.Message):
     nextStop: Station
     state: AutonomyStatus.State
     telemetry: AutonomyStatus.Telemetry
-    def __init__(self, telemetry: _Optional[_Union[AutonomyStatus.Telemetry, _Mapping]] = ..., state: _Optional[_Union[AutonomyStatus.State, str]] = ..., nextStop: _Optional[_Union[Station, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        telemetry: _Optional[_Union[AutonomyStatus.Telemetry, _Mapping]] = ...,
+        state: _Optional[_Union[AutonomyStatus.State, str]] = ...,
+        nextStop: _Optional[_Union[Station, _Mapping]] = ...,
+    ) -> None: ...
 
 class Position(_message.Message):
     __slots__ = ["altitude", "latitude", "longitude"]
@@ -61,7 +89,12 @@ class Position(_message.Message):
     altitude: float
     latitude: float
     longitude: float
-    def __init__(self, latitude: _Optional[float] = ..., longitude: _Optional[float] = ..., altitude: _Optional[float] = ...) -> None: ...
+    def __init__(
+        self,
+        latitude: _Optional[float] = ...,
+        longitude: _Optional[float] = ...,
+        altitude: _Optional[float] = ...,
+    ) -> None: ...
 
 class Station(_message.Message):
     __slots__ = ["name", "position"]
@@ -69,4 +102,8 @@ class Station(_message.Message):
     POSITION_FIELD_NUMBER: _ClassVar[int]
     name: str
     position: Position
-    def __init__(self, name: _Optional[str] = ..., position: _Optional[_Union[Position, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        name: _Optional[str] = ...,
+        position: _Optional[_Union[Position, _Mapping]] = ...,
+    ) -> None: ...

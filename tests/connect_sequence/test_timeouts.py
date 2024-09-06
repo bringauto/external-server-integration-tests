@@ -7,12 +7,8 @@ sys.path.append(".")
 
 from tests._utils.misc import clear_logs
 from tests._utils.broker import MQTTBrokerTest
-from tests._utils.mocks import (
-    ApiClientTest,
-    ExternalClientMock,
-    docker_compose_up,
-    docker_compose_down,
-)
+from tests._utils.mocks import ApiClientTest, ExternalClientMock
+from tests._utils.docker import docker_compose_up, docker_compose_down
 from tests._utils.messages import (
     Device,
     command_response,
@@ -30,8 +26,6 @@ from tests._utils.messages import (
 autonomy = device_obj(module_id=1, type=1, role="driving", name="Autonomy", priority=0)
 autonomy_id = device_id(module_id=1, type=1, role="driving", name="Autonomy")
 API_HOST = "http://localhost:8080/v2/protocol"
-
-
 _broker = MQTTBrokerTest()
 
 
@@ -44,13 +38,17 @@ class Test_Message_Timeout(unittest.TestCase):
         self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
         self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
         docker_compose_up()
-        self.msg_timeout = json.load(open("config/external-server/config.json"))["timeout"]
+        self.msg_timeout = json.load(open("config/external-server/config.json"))[
+            "timeout"
+        ]
 
     def test_not_receiving_connect_message_resets_connection_sequence(self):
         time.sleep(self.msg_timeout + 0.1)
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
         payload = AutonomyStatus().SerializeToString()
-        self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, payload), sleep=0.1)
+        self.ec.post(
+            status("id", DeviceState.CONNECTING, autonomy, 0, payload), sleep=0.1
+        )
         self.ec.post(command_response("id", CmdResponseType.OK, 0), sleep=0.1)
         payload = AutonomyStatus(state=AutonomyState.OBSTACLE.value).SerializeToString()
         self.ec.post(status("id", DeviceState.RUNNING, autonomy, 1, payload), sleep=0.1)
@@ -62,13 +60,19 @@ class Test_Message_Timeout(unittest.TestCase):
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]))
 
         time.sleep(self.msg_timeout + 0.1)
-        self.ec.post(connect_msg("other_id", "company_x", "car_a", [autonomy]), sleep=0.5)
+        self.ec.post(
+            connect_msg("other_id", "company_x", "car_a", [autonomy]), sleep=0.5
+        )
         payload = AutonomyStatus().SerializeToString()
-        self.ec.post(status("other_id", DeviceState.CONNECTING, autonomy, 0, payload), sleep=0.1)
+        self.ec.post(
+            status("other_id", DeviceState.CONNECTING, autonomy, 0, payload), sleep=0.1
+        )
         self.ec.post(command_response("other_id", CmdResponseType.OK, 0), sleep=0.5)
 
         payload = AutonomyStatus(state=AutonomyState.OBSTACLE.value).SerializeToString()
-        self.ec.post(status("other_id", DeviceState.RUNNING, autonomy, 1, payload), sleep=0.1)
+        self.ec.post(
+            status("other_id", DeviceState.RUNNING, autonomy, 1, payload), sleep=0.1
+        )
         time.sleep(1)
         s = self.api_client.get_statuses()
         self.assertEqual(s[-1].payload.data.to_dict()["state"], "OBSTACLE")
@@ -76,16 +80,24 @@ class Test_Message_Timeout(unittest.TestCase):
     def test_not_receiving_first_command_response_resets_connection_sequence(self):
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]))
         payload = AutonomyStatus().SerializeToString()
-        self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, payload), sleep=0.1)
+        self.ec.post(
+            status("id", DeviceState.CONNECTING, autonomy, 0, payload), sleep=0.1
+        )
         time.sleep(self.msg_timeout + 1)
 
-        self.ec.post(connect_msg("other_id", "company_x", "car_a", [autonomy]), sleep=0.1)
+        self.ec.post(
+            connect_msg("other_id", "company_x", "car_a", [autonomy]), sleep=0.1
+        )
         payload = AutonomyStatus().SerializeToString()
-        self.ec.post(status("other_id", DeviceState.CONNECTING, autonomy, 0, payload), sleep=0.1)
+        self.ec.post(
+            status("other_id", DeviceState.CONNECTING, autonomy, 0, payload), sleep=0.1
+        )
         self.ec.post(command_response("other_id", CmdResponseType.OK, 0), sleep=0.1)
 
         payload = AutonomyStatus(state=AutonomyState.OBSTACLE.value).SerializeToString()
-        self.ec.post(status("other_id", DeviceState.RUNNING, autonomy, 1, payload), sleep=0.1)
+        self.ec.post(
+            status("other_id", DeviceState.RUNNING, autonomy, 1, payload), sleep=0.1
+        )
         time.sleep(1)
         s = self.api_client.get_statuses()
         self.assertEqual(s[-1].payload.data.to_dict()["state"], "OBSTACLE")
@@ -97,9 +109,13 @@ class Test_Message_Timeout(unittest.TestCase):
     def _run_connect_seq(
         self, session_id: str, autonomy: Device, ext_client: ExternalClientMock
     ) -> None:
-        ext_client.post(connect_msg(session_id, "company_x", "car_a", [autonomy]), sleep=0.1)
+        ext_client.post(
+            connect_msg(session_id, "company_x", "car_a", [autonomy]), sleep=0.1
+        )
         payload = AutonomyStatus().SerializeToString()
-        ext_client.post(status(session_id, DeviceState.CONNECTING, autonomy, 0, payload), sleep=0.1)
+        ext_client.post(
+            status(session_id, DeviceState.CONNECTING, autonomy, 0, payload), sleep=0.1
+        )
         ext_client.post(command_response(session_id, CmdResponseType.OK, 0), sleep=0.5)
 
 

@@ -7,12 +7,8 @@ sys.path.append(".")
 
 from tests._utils.broker import MQTTBrokerTest
 from tests._utils.misc import clear_logs
-from tests._utils.mocks import (
-    ApiClientTest,
-    ExternalClientMock,
-    docker_compose_down,
-    docker_compose_up,
-)
+from tests._utils.mocks import ApiClientTest, ExternalClientMock
+from tests._utils.docker import docker_compose_up, docker_compose_down
 from tests._utils.messages import (
     connect_msg,
     command_response,
@@ -120,7 +116,9 @@ class Test_Device_Disconnection(unittest.TestCase):
         self.assertEqual(len(statuses), 1)
         self.assertEqual(statuses[0].payload.data.to_dict()["data"][2]["butPr"], 1)
 
-    def test_device_is_disconnected_immediatelly_after_receving_command_response_even_though_not_in_order(self):
+    def test_device_is_disconnected_immediatelly_after_receving_command_response_even_though_not_in_order(
+        self,
+    ):
         self.ec.post(connect_msg("id", "company_x", "car_a", [button_1, button_2]))
         payload_dict = {"data": [[], [], {"butPr": 0}]}
         payload = json.dumps(payload_dict).encode()
