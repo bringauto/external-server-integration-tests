@@ -2,6 +2,8 @@
 
 Integration tests of an interface between Module Gateway and External Server, independent of the Server implementation.
 
+The server implementation under test in the form of a **Docker image**.
+
 All the tests are contained in the `tests` folder. The tests are written in Python and use the `unittest` framework.
 
 The `tests/_utils` folder contains utility functions and classes used in the tests. It does not contain any tests.
