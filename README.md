@@ -41,10 +41,12 @@ protoc ./tests/_utils/modules/mission_module/MissionModule.proto --python_out=. 
 
 ## Choosing the implementations to be tested
 
-In the `config/tests/config.json` file, set the following:
+In the `config/tests/config.json` file, there are following fields:
 
 - `EXTERNAL_SERVER_IMAGE` - the Docker image of the External Server implementation to be tested
 - `FLEET_PROTOCOL_HTTP_API_IMAGE` - the Docker image of the Fleet Protocol HTTP API implementation to be used for the tests
+
+For each replace the `<path-to-docker-image>` with the path to the Docker image.
 
 # Running the tests
 
