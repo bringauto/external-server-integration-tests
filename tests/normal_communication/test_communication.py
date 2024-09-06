@@ -105,6 +105,45 @@ class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
         ext_client.post(command_response("id", CmdResponseType.OK, 0), sleep=0.5)
 
 
+class Test_Messages_From_Unsupported_Device(unittest.TestCase):
+
+    def setUp(self) -> None:
+        clear_logs()
+        self.broker = _broker
+        self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
+        self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
+        docker_compose_up()
+        self._run_connect_sequence(autonomy=autonomy, ext_client=self.ec)
+
+    def test_messages_from_unsupported_device_are_ignored_and_not_forwarded_to_api(self):
+        timestamp = int(time.time() * 1000)
+        unsupported_device = device_obj(module_id=1, type=123456789, role="notdriving", name="UnsupportedDevice", priority=0)
+        self.ec.post(status("id", DeviceState.RUNNING, autonomy, 0, AutonomyStatus().SerializeToString()), sleep=0.1)
+        self.ec.post(status("id", DeviceState.CONNECTING, unsupported_device, 0, AutonomyStatus().SerializeToString()), sleep=0.1)
+        time.sleep(1)
+        s = self.api_client.get_statuses(since=timestamp)
+        self.assertEqual(len(s), 1)
+        self.assertEqual(s[0].device_id.module_id, autonomy.module)
+        self.assertEqual(s[0].device_id.name, "Autonomy")
+
+    def tearDown(self):
+        docker_compose_down()
+
+    def _run_connect_sequence(self, autonomy: Device, ext_client: ExternalClientMock) -> None:
+        ext_client.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
+        ext_client.post(
+            status(
+                "id",
+                DeviceState.CONNECTING,
+                autonomy,
+                0,
+                payload=AutonomyStatus().SerializeToString(),
+            ),
+            sleep=0.1,
+        )
+        ext_client.post(command_response("id", CmdResponseType.OK, 0), sleep=0.5)
+
+
 if __name__ == "__main__":  # pragma: no cover
     _broker.start()
     unittest.main()

@@ -19,6 +19,7 @@ from ExternalProtocol_pb2 import (  # type: ignore
 from fleet_http_client_python import Message, Payload, DeviceId  # type: ignore
 from .modules.mission_module.MissionModule_pb2 import (  # type: ignore
     AutonomyCommand,
+    AutonomyError,
     AutonomyStatus,
     Position,
     Station,
