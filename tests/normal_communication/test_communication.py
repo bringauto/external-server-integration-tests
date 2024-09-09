@@ -79,11 +79,7 @@ class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
         with futures.ThreadPoolExecutor() as ex:
             s = self.api_client.get_statuses()
             self.assertEqual(len(s), 1)
-            f = ex.submit(
-                _comm_layer.collect_published,
-                topic="company_x/car_a/external_server",
-                n=1,
-            )
+            f = ex.submit(self.ec.get, n=1)
             self.api_client.post_commands(cmd)
             time.sleep(0.5)
             msg = f.result()[0]

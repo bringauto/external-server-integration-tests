@@ -4,6 +4,7 @@ import time
 import json
 
 sys.path.append(".")
+sys.path.append("lib/fleet-protocol/protobuf/compiled/python")
 
 from tests._utils.misc import clear_logs
 from tests._utils.api_client_mock import ApiClientMock

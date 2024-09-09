@@ -37,7 +37,7 @@ class _CommunicationLayerImpl(CommunicationLayer):
         self._broker.publish(topic, data)
 
     def collect(self, company: str, car_name: str, n: int) -> list[_MQTTMessage]:
-        topic = f"{company}/{car_name}/module_gateway"
+        topic = f"{company}/{car_name}/external_server"
         return self._broker.collect_published(topic, n)
 
     def start(self) -> None:
@@ -62,3 +62,6 @@ class ExternalClientMock:
         data = msg.SerializeToString()
         self._comm_layer.post(self._company, self._car, data)
         time.sleep(max(sleep, 0.0))
+
+    def get(self, n: int) -> list[_MQTTMessage]:
+        return self._comm_layer.collect(self._company, self._car, n)

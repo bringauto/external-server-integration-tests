@@ -1,6 +1,10 @@
 import unittest
 import time
 from concurrent import futures
+import sys
+
+sys.path.append(".")
+sys.path.append("lib/fleet-protocol/protobuf/compiled/python")
 
 from google.protobuf.json_format import MessageToDict  # type: ignore
 
@@ -68,9 +72,7 @@ class Test_Message_Order(unittest.TestCase):
         self,
     ):
         with futures.ThreadPoolExecutor() as executor:
-            f1 = executor.submit(
-                _comm_layer.collect_published, "company_x/car_a/external_server", n=3
-            )
+            f1 = executor.submit(self.ec.get, n=3)
             self.api_client.post_commands(
                 api_command(
                     autonomy_id,
