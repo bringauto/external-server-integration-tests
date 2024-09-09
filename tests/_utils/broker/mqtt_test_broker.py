@@ -5,7 +5,6 @@ import time
 from paho.mqtt.client import MQTTMessage as _MQTTMessage
 import paho.mqtt.subscribe as subscribe  # type: ignore
 import paho.mqtt.publish as publish  # type: ignore
-import logging
 
 
 class MQTTBrokerTest:
@@ -14,9 +13,7 @@ class MQTTBrokerTest:
     _DEFAULT_HOST = "127.0.0.1"
     _DEFAULT_PORT = 1883
 
-    def __init__(
-        self, start: bool = False, port: int = _DEFAULT_PORT, kill_others: bool = True
-    ):
+    def __init__(self, start: bool = False, port: int = _DEFAULT_PORT, kill_others: bool = True):
         if kill_others:  # pragma: no cover
             MQTTBrokerTest.kill_all_test_brokers()
         self._process: None | subprocess.Popen = None
@@ -50,9 +47,7 @@ class MQTTBrokerTest:
         `n` is the number of messages to wait for and return.
         """
         print(f"Test broker: Waiting for {n} messages on topic {topic}")
-        result = subscribe.simple(
-            topics=[topic], hostname=self._host, port=self._port, msg_count=n
-        )
+        result = subscribe.simple(topics=[topic], hostname=self._host, port=self._port, msg_count=n)
         if n == 0:  # pragma: no cover
             return []
         if n == 1:
@@ -67,9 +62,7 @@ class MQTTBrokerTest:
         for p in payload:
             payloads.append(p)
         if len(payloads) == 1:
-            publish.single(
-                topic, payload=payload[0], hostname=self._host, port=self._port
-            )
+            publish.single(topic, payload=payload[0], hostname=self._host, port=self._port)
         else:
             try:
                 publish.multiple(msgs=[(topic, p) for p in payloads], hostname=self._host, port=self._port)  # type: ignore
@@ -81,9 +74,7 @@ class MQTTBrokerTest:
         if self.is_running:
             print("Test broker is already running.")
         broker_script = self._script_path
-        self._process = subprocess.Popen(
-            ["python3", broker_script, f"--port={self._port}"]
-        )
+        self._process = subprocess.Popen(["python3", broker_script, f"--port={self._port}"])
         print(f"Started test broker on host {self._host} and port {self._port}")
         assert isinstance(self._process, subprocess.Popen)
         self._running_broker_processes.append(self._process)

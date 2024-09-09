@@ -3,8 +3,8 @@ import sys
 
 sys.path.append(".")
 
-from tests._utils.broker import MQTTBrokerTest
-from tests._utils.mocks import ApiClientTest, ExternalClientMock
+from tests._utils.api_client_mock import ApiClientMock
+from tests._utils.external_client import ExternalClientMock, communication_layer
 from tests._utils.docker import docker_compose_up, docker_compose_down
 from tests._utils.messages import (
     AutonomyStatus,
@@ -21,16 +21,15 @@ from tests._utils.messages import (
 autonomy = device_obj(module_id=1, type=1, role="driving", name="Autonomy", priority=0)
 autonomy_id = device_id(module_id=1, type=1, role="driving", name="Autonomy")
 API_HOST = "http://localhost:8080/v2/protocol"
-_broker = MQTTBrokerTest()
+_comm_layer = communication_layer()
 
 
 class Test_Unsupported_Device(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.broker = _broker
-        self.broker.start()
-        self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
-        self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
+        _comm_layer.start()
+        self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
+        self.api_client = ApiClientMock(API_HOST, "company_x", "car_a", "TestAPIKey")
         docker_compose_up()
         self.payload = AutonomyStatus().SerializeToString()
 
@@ -84,10 +83,10 @@ class Test_Unsupported_Device(unittest.TestCase):
 
     def tearDown(self):
         docker_compose_down()
-        self.broker.stop()
+        _comm_layer.stop()
 
 
 if __name__ == "__main__":  # pragma: no cover
-    _broker.start()
+    _comm_layer.start()
     unittest.main()
-    _broker.stop()
+    _comm_layer.stop()

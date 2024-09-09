@@ -15,11 +15,9 @@ from fleet_http_client_python import (  # type: ignore
     Payload,
     DeviceApi,
 )
-from ExternalProtocol_pb2 import ExternalClient as _ExternalClientMsg  # type: ignore
-from .broker import MQTTBrokerTest
 
 
-class ApiClientTest:
+class ApiClientMock:
 
     def __init__(self, host: str, company: str, car: str, api_key: str) -> None:
         self._configuration = Configuration(host=host, api_key={"AdminAuth": api_key})
@@ -67,17 +65,3 @@ class ApiClientTest:
         except Exception as e:
             print(f"Error: {e}")
             return []
-
-
-class ExternalClientMock:
-
-    def __init__(self, broker: MQTTBrokerTest, company: str, car: str) -> None:
-        self._broker = broker
-        self._company = company
-        self._car = car
-
-    def post(self, msg: _ExternalClientMsg, sleep: float = 0.0) -> None:
-        topic = f"{self._company}/{self._car}/module_gateway"
-        msg_str = msg.SerializeToString()
-        self._broker.publish(topic, msg_str)
-        time.sleep(max(sleep, 0.0))

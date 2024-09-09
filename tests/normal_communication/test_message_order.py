@@ -21,13 +21,13 @@ from tests._utils.messages import (
     DeviceState,
 )
 from tests._utils.misc import clear_logs
-from tests._utils.mocks import ApiClientTest, ExternalClientMock
+from tests._utils.api_client_mock import ApiClientMock
+from tests._utils.external_client import ExternalClientMock, communication_layer
 from tests._utils.docker import docker_compose_up, docker_compose_down
-from tests._utils.broker import MQTTBrokerTest
 
 
 API_HOST = "http://localhost:8080/v2/protocol"
-_broker = MQTTBrokerTest()
+_comm_layer = communication_layer()
 autonomy = device_obj(module_id=1, type=1, role="driving", name="Autonomy", priority=0)
 autonomy_id = device_id(module_id=1, type=1, role="driving", name="Autonomy")
 
@@ -35,27 +35,20 @@ autonomy_id = device_id(module_id=1, type=1, role="driving", name="Autonomy")
 class Test_Message_Order(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.broker = _broker
-        self.broker.start()
-        self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
-        self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
+        _comm_layer.start()
+        self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
+        self.api_client = ApiClientMock(API_HOST, "company_x", "car_a", "TestAPIKey")
         clear_logs()
         docker_compose_up()
         self._run_connect_sequence()
         time.sleep(0.5)
 
     def test_statuses_received_in_incorrect_are_published_to_api_in_correct_order(self):
-        payload_1 = AutonomyStatus(
-            state=AutonomyState.OBSTACLE.value
-        ).SerializeToString()
+        payload_1 = AutonomyStatus(state=AutonomyState.OBSTACLE.value).SerializeToString()
         payload_2 = AutonomyStatus(state=AutonomyState.IDLE.value).SerializeToString()
         payload_3 = AutonomyStatus(state=AutonomyState.ERROR.value).SerializeToString()
-        self.ec.post(
-            status("id", DeviceState.RUNNING, autonomy, 1, payload_1), sleep=0.2
-        )
-        self.ec.post(
-            status("id", DeviceState.RUNNING, autonomy, 3, payload_3), sleep=0.2
-        )
+        self.ec.post(status("id", DeviceState.RUNNING, autonomy, 1, payload_1), sleep=0.2)
+        self.ec.post(status("id", DeviceState.RUNNING, autonomy, 3, payload_3), sleep=0.2)
 
         statuses = self.api_client.get_statuses()
         # only the status from connect sequence and the first status are published to the API
@@ -64,9 +57,7 @@ class Test_Message_Order(unittest.TestCase):
         self.assertEqual(statuses[0].payload.data.to_dict()["state"], "IDLE")
         self.assertEqual(statuses[1].payload.data.to_dict()["state"], "OBSTACLE")
 
-        self.ec.post(
-            status("id", DeviceState.RUNNING, autonomy, 2, payload_2), sleep=0.5
-        )
+        self.ec.post(status("id", DeviceState.RUNNING, autonomy, 2, payload_2), sleep=0.5)
         statuses = self.api_client.get_statuses()
         # all statuses are now published to the API in correct order
         self.assertEqual(len(statuses), 4)
@@ -78,7 +69,7 @@ class Test_Message_Order(unittest.TestCase):
     ):
         with futures.ThreadPoolExecutor() as executor:
             f1 = executor.submit(
-                _broker.collect_published, "company_x/car_a/external_server", n=3
+                _comm_layer.collect_published, "company_x/car_a/external_server", n=3
             )
             self.api_client.post_commands(
                 api_command(
@@ -98,17 +89,14 @@ class Test_Message_Order(unittest.TestCase):
             time.sleep(0.5)
             # only a single response is received, but all commands are published
             self.ec.post(command_response("id", CmdResponseType.OK, 2), sleep=0.2)
-            msgs = [
-                MessageToDict(_ExternalServerMsg.FromString(r.payload))
-                for r in f1.result()
-            ]
+            msgs = [MessageToDict(_ExternalServerMsg.FromString(r.payload)) for r in f1.result()]
             self.assertEqual(msgs[0]["command"]["messageCounter"], 1)
             self.assertEqual(msgs[1]["command"]["messageCounter"], 2)
             self.assertEqual(msgs[2]["command"]["messageCounter"], 3)
 
     def tearDown(self) -> None:
         docker_compose_down()
-        self.broker.stop()
+        _comm_layer.stop()
 
     def _run_connect_sequence(self):
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)

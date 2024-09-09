@@ -5,9 +5,9 @@ import sys
 
 sys.path.append(".")
 
-from tests._utils.broker import MQTTBrokerTest
 from tests._utils.misc import clear_logs
-from tests._utils.mocks import ApiClientTest, ExternalClientMock
+from tests._utils.api_client_mock import ApiClientMock
+from tests._utils.external_client import ExternalClientMock, communication_layer
 from tests._utils.docker import docker_compose_up, docker_compose_down
 from tests._utils.messages import (
     connect_msg,
@@ -21,7 +21,7 @@ from tests._utils.messages import (
 
 
 API_HOST = "http://localhost:8080/v2/protocol"
-_broker = MQTTBrokerTest()
+_comm_layer = communication_layer()
 button_1 = device_obj(module_id=2, type=3, role="button_1", name="Button1", priority=0)
 button_1_id = DeviceId(module_id=2, type=3, role="button_1", name="Button1")
 button_2 = device_obj(module_id=2, type=3, role="button_2", name="Button2", priority=0)
@@ -30,11 +30,10 @@ button_2 = device_obj(module_id=2, type=3, role="button_2", name="Button2", prio
 class Test_Device_Disconnection(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.broker = _broker
-        self.broker.start()
+        _comm_layer.start()
         clear_logs()
-        self.ec = ExternalClientMock(self.broker, "company_x", "car_a")
-        self.api_client = ApiClientTest(API_HOST, "company_x", "car_a", "TestAPIKey")
+        self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
+        self.api_client = ApiClientMock(API_HOST, "company_x", "car_a", "TestAPIKey")
         docker_compose_up()
 
     def test_statuses_of_disconnected_device_are_not_forwarded_to_api(self):
@@ -129,7 +128,7 @@ class Test_Device_Disconnection(unittest.TestCase):
 
     def tearDown(self) -> None:
         docker_compose_down()
-        self.broker.stop()
+        _comm_layer.stop()
 
 
 if __name__ == "__main__":  # pragma: no cover

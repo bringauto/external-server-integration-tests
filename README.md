@@ -71,6 +71,8 @@ python3 -m tests connect_sequence normal_communication/test_communication.py
 
 # Development
 
+## Adding tests
+
 To add a new test, create a new Python file in the `tests` folder. The file should contain a class that inherits from `unittest.TestCase`. The class should have methods that start with `test_`.
 Unit test names should describe the purpose of the test, i.e. tell the expected behaviour. For example,
 
@@ -85,5 +87,18 @@ is preffered over
 def test_invalid_names(self):
     self.assertRaises(NameContainsNumerals, "car_1324")
 ```
+
+## Switching communication protocol
+
+The External server communicates with the car via MQTT. If this changes, the following methods has to be done:
+
+- add any neccessary utility modules to the `tests/_utils`,
+- modify the `_CommunicationLayerImpl` class in `tests/_utils/external_client.py` for the new communication protocol.
+
+## MQTT broker
+
+The mocked communication layer between External Client mock and the External Server currently uses the eclipse's test [MQTT broker](https://github.com/eclipse/paho.mqtt.testing), implemented in Python. There is no special reason for using specifically this broker. In case of any issues with the broker, it can be replaced with another (an suitable option is to use the VerneMQ broker, as in [etna](https://github.com/bringauto/etna)).
+
+## Type checking
 
 To allow for type checking of the classes from compiler protobuf of fleet protocol, add `<project-root-directory>/lib/fleet-protocol/protobuf/compiled/python`to the `PYTHONPATH` environment variable.

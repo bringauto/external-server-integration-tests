@@ -103,7 +103,5 @@ class Station(_message.Message):
     name: str
     position: Position
     def __init__(
-        self,
-        name: _Optional[str] = ...,
-        position: _Optional[_Union[Position, _Mapping]] = ...,
+        self, name: _Optional[str] = ..., position: _Optional[_Union[Position, _Mapping]] = ...
     ) -> None: ...
