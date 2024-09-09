@@ -18,12 +18,12 @@ The `tests/_utils` folder contains utility functions and classes used in the tes
 
 ## Choosing the implementations to be tested
 
-In the `config/tests/config.json` file, there are following fields:
+Copy the `config/tests/empty_config.json` file to `config/tests/config.json`.
+
+For each of the fields in the `config/tests/config.json` file, replace the `<path-to-docker-image>` with the path to the corresponding Docker image.
 
 - `EXTERNAL_SERVER_IMAGE` - the Docker image of the External Server implementation to be tested
 - `FLEET_PROTOCOL_HTTP_API_IMAGE` - the Docker image of the Fleet Protocol HTTP API implementation to be used for the tests
-
-For each replace the `<path-to-docker-image>` with the path to the Docker image.
 
 ## Environment and submodules for testing
 
@@ -88,7 +88,7 @@ def test_invalid_names(self):
     self.assertRaises(NameContainsNumerals, "car_1324")
 ```
 
-## Switching communication protocol
+## Switching the communication protocol
 
 The External server communicates with the car via MQTT. If this changes, the following methods has to be done:
 
