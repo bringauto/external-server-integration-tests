@@ -69,6 +69,22 @@ python3 -m tests connect_sequence normal_communication/test_communication.py
 
 # Development
 
-To add a new test, create a new Python file in the `tests` folder. The file should contain a class that inherits from `unittest.TestCase`. The class should have methods that start with `test_`. Each method should contain the test logic.
+To add a new test, create a new Python file in the `tests` folder. The file should contain a class that inherits from `unittest.TestCase`. The class should have methods that start with `test_`.
+Unit test names should describe the purpose of the test, i.e. tell the expected behaviour. For example,
+
+```python
+def test_names_containing_numerals_raise_exception(self):
+    self.assertRaises(NameContainsNumerals, "car_1324")
+```
+
+is preffered over
+
+```python
+def test_invalid_names(self):
+    self.assertRaises(NameContainsNumerals, "car_1324")
+```
+
 
 To allow for type checking of the classes from compiler protobuf of fleet protocol, add `<project-root-directory>/lib/fleet-protocol/protobuf/compiled/python`to the `PYTHONPATH` environment variable.
+
+
