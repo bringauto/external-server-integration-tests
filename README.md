@@ -16,9 +16,20 @@ The `tests/_utils` folder contains utility functions and classes used in the tes
 
 # Setup
 
+## Choosing the implementations to be tested
+
+In the `config/tests/config.json` file, there are following fields:
+
+- `EXTERNAL_SERVER_IMAGE` - the Docker image of the External Server implementation to be tested
+- `FLEET_PROTOCOL_HTTP_API_IMAGE` - the Docker image of the Fleet Protocol HTTP API implementation to be used for the tests
+
+For each replace the `<path-to-docker-image>` with the path to the Docker image.
+
 ## Environment and submodules for testing
 
-Create and activate virtual environment, install Python packages:
+In the `requirements.txt` file set the version of `fleet_http_client_python` to the version that is compatible with the version of the Fleet Protocol HTTP API used for testing.
+
+Create and activate a virtual environment and install Python packages:
 
 ```bash
 python3 -m venv .venv  && \
@@ -38,15 +49,6 @@ Copy the mission module .proto file and compile it into Python a module:
 cp lib/mission-module/lib/protobuf-mission-module/MissionModule.proto ./tests/_utils/modules/mission_module/ && \
 protoc ./tests/_utils/modules/mission_module/MissionModule.proto --python_out=. --pyi_out=.
 ```
-
-## Choosing the implementations to be tested
-
-In the `config/tests/config.json` file, there are following fields:
-
-- `EXTERNAL_SERVER_IMAGE` - the Docker image of the External Server implementation to be tested
-- `FLEET_PROTOCOL_HTTP_API_IMAGE` - the Docker image of the Fleet Protocol HTTP API implementation to be used for the tests
-
-For each replace the `<path-to-docker-image>` with the path to the Docker image.
 
 # Running the tests
 
