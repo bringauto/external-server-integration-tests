@@ -84,7 +84,4 @@ def test_invalid_names(self):
     self.assertRaises(NameContainsNumerals, "car_1324")
 ```
 
-
 To allow for type checking of the classes from compiler protobuf of fleet protocol, add `<project-root-directory>/lib/fleet-protocol/protobuf/compiled/python`to the `PYTHONPATH` environment variable.
-
-
