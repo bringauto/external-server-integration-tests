@@ -4,6 +4,7 @@ import sys
 sys.path.append(".")
 
 from tests._utils.api_client_mock import ApiClientMock
+from tests._utils.misc import clear_logs
 from tests._utils.external_client import ExternalClientMock, communication_layer
 from tests._utils.docker import docker_compose_up, docker_compose_down
 from tests._utils.messages import (
@@ -27,6 +28,7 @@ _comm_layer = communication_layer()
 class Test_Unsupported_Device(unittest.TestCase):
 
     def setUp(self) -> None:
+        clear_logs()
         _comm_layer.start()
         self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
         self.api_client = ApiClientMock(API_HOST, "company_x", "car_a", "TestAPIKey")
