@@ -40,14 +40,16 @@ class Test_Message_Timeout(unittest.TestCase):
         self.msg_timeout = json.load(open("config/external-server/config.json"))["timeout"]
 
     def test_not_receiving_connect_message_resets_connection_sequence(self):
-        time.sleep(self.msg_timeout + 0.1)
-        self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
+        time.sleep(self.msg_timeout + 0.2)
+        self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.2)
         payload = AutonomyStatus().SerializeToString()
-        self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, payload), sleep=0.1)
+        self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, payload), sleep=0.2)
         self.ec.post(command_response("id", CmdResponseType.OK, 0), sleep=0.1)
+
         payload = AutonomyStatus(state=AutonomyState.OBSTACLE.value).SerializeToString()
         self.ec.post(status("id", DeviceState.RUNNING, autonomy, 1, payload), sleep=0.1)
-        time.sleep(1)
+
+        time.sleep(0.5)
         s = self.api_client.get_statuses()
         self.assertEqual(s[-1].payload.data.to_dict()["state"], "OBSTACLE")
 
