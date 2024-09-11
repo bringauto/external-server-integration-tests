@@ -47,7 +47,7 @@ class Test_Connection_Sequence(unittest.TestCase):
     ):
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
-        self.ec.post(command_response("id", CmdResponseType.OK, 0), sleep=0.5)
+        self.ec.post(command_response("id", CmdResponseType.OK, 0), sleep=1)
         s = self.api.get_statuses()[0]
         self.assertEqual(s.device_id.module_id, autonomy.module)
         self.assertEqual(s.device_id.type, autonomy.deviceType)

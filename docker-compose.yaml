@@ -9,8 +9,8 @@ services:
         "./config/config.json",
       ]
     volumes:
-      - "./config/external-server:/home/bringauto/external_server/config"
-      - "./log/external-server:/home/bringauto/external_server/log"
+      - "./config/external-server:/home/bringauto/config"
+      - "./log/external-server:/home/bringauto/log"
     restart: "no"
     depends_on:
       - http-api
