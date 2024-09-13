@@ -40,11 +40,11 @@ class Test_Message_Order(unittest.TestCase):
 
     def setUp(self) -> None:
         _comm_layer.start()
-        self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
-        self.api_client = ApiClientMock(API_HOST, "company_x", "car_a", "TestAPIKey")
+        self.ec = ExternalClientMock(_comm_layer, "company_x", "car_1")
+        self.api_client = ApiClientMock(API_HOST, "company_x", "car_1", "TestAPIKey")
         clear_logs()
         docker_compose_up()
-        self._run_connect_sequence()
+        self._run_connect_sequence(car_name = "car_1")
         time.sleep(0.5)
 
     def test_statuses_received_in_incorrect_are_published_to_api_in_correct_order(self):
@@ -100,8 +100,8 @@ class Test_Message_Order(unittest.TestCase):
         docker_compose_down()
         _comm_layer.stop()
 
-    def _run_connect_sequence(self):
-        self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
+    def _run_connect_sequence(self, car_name: str):
+        self.ec.post(connect_msg("id", "company_x", car_name, [autonomy]), sleep=0.1)
         self.ec.post(
             status(
                 "id",

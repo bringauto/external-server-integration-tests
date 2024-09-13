@@ -34,6 +34,7 @@
     }
   },
   "cars": {
-    "car_1": {"specific_modules": {}}
+    "car_1": {"specific_modules": {}},
+    "car_2": {"specific_modules": {}}
   }
 }

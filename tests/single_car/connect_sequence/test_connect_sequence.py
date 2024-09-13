@@ -37,15 +37,15 @@ class Test_Connection_Sequence(unittest.TestCase):
     def setUp(self) -> None:
         clear_logs()
         comm_layer.start()
-        self.ec = ExternalClientMock(comm_layer, "company_x", "car_a")
-        self.api = ApiClientMock(API_HOST, "company_x", "car_a", "TestAPIKey")
+        self.ec = ExternalClientMock(comm_layer, "company_x", "car_1")
+        self.api = ApiClientMock(API_HOST, "company_x", "car_1", "TestAPIKey")
         docker_compose_up()
         self.payload = AutonomyStatus().SerializeToString()
 
     def test_sending_connect_message_statuses_and_commands_makes_successful_connect_sequence(
         self,
     ):
-        self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
+        self.ec.post(connect_msg("id", "company_x", "car_1", [autonomy]), sleep=0.1)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         self.ec.post(command_response("id", CmdResponseType.OK, 0), sleep=1)
         s = self.api.get_statuses()[0]
@@ -58,8 +58,8 @@ class Test_Connection_Sequence(unittest.TestCase):
         self.assertEqual(s.payload.data.to_dict()["state"], "IDLE")
 
     def test_sending_connect_msg_twice_stops_sequence_and_prevents_sending_status(self):
-        self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
-        self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
+        self.ec.post(connect_msg("id", "company_x", "car_1", [autonomy]), sleep=0.1)
+        self.ec.post(connect_msg("id", "company_x", "car_1", [autonomy]), sleep=0.1)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         time.sleep(0.5)
         statuses = self.api.get_statuses(wait=True)
@@ -68,7 +68,7 @@ class Test_Connection_Sequence(unittest.TestCase):
     def test_sending_status_twice_stops_the_sequence_and_prevents_sending_of_command_via_mqtt(
         self,
     ):
-        self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
+        self.ec.post(connect_msg("id", "company_x", "car_1", [autonomy]), sleep=0.1)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         s = self.api.get_statuses(wait=True)[0]
@@ -93,7 +93,7 @@ class Test_Connection_Sequence(unittest.TestCase):
             api_command(autonomy_id, Action.START, [stop_a], "route_1"),
             api_command(autonomy_id, Action.START, [stop_a, stop_b], "route_1"),
         )
-        self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.2)
+        self.ec.post(connect_msg("id", "company_x", "car_1", [autonomy]), sleep=0.2)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         self.ec.post(command_response("id", CmdResponseType.OK, 0))
         time.sleep(0.5)

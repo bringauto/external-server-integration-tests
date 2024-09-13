@@ -1,6 +1,8 @@
 services:
   external-server:
-    image: $EXTERNAL_SERVER_IMAGE
+    # image: $EXTERNAL_SERVER_IMAGE
+    build:
+      context: /home/jiri-strouhal/Plocha/external-server
     entrypoint:
       [
         "python3",
@@ -10,6 +12,7 @@ services:
       ]
     volumes:
       - "./config/external-server:/home/bringauto/config"
+      - "./config/external-server/$CONFIG_NAME:/home/bringauto/config/config.json"
       - "./log/external-server:/home/bringauto/log"
     restart: "no"
     depends_on:
