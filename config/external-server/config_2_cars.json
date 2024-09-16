@@ -1,8 +1,8 @@
 {
   "mqtt_address": "172.17.0.1",
   "mqtt_port": 1883,
-  "mqtt_timeout": 5,
-  "timeout": 2,
+  "mqtt_timeout": 10,
+  "timeout": 5,
   "send_invalid_command": false,
   "sleep_duration_after_connection_refused": 1,
   "log_files_directory": "",
@@ -34,7 +34,7 @@
   },
   "company_name": "company_x",
   "cars": {
-    "car_1": {"specific_modules": {}},
-    "car_2": {"specific_modules": {}}
+    "car_a": {"specific_modules": {}},
+    "car_b": {"specific_modules": {}}
   }
 }

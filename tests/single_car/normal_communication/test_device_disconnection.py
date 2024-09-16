@@ -33,7 +33,7 @@ class Test_Device_Disconnection(unittest.TestCase):
         _comm_layer.start()
         clear_logs()
         self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
-        self.api_client = ApiClientMock(API_HOST, "company_x", "car_a", "TestAPIKey")
+        self.api_client = ApiClientMock(API_HOST, "TestAPIKey")
         docker_compose_up()
 
     def test_statuses_of_disconnected_device_are_not_forwarded_to_api(self):
@@ -57,7 +57,7 @@ class Test_Device_Disconnection(unittest.TestCase):
         self.ec.post(status("id", DeviceState.RUNNING, button_1, 6, payload))
 
         time.sleep(0.1)
-        statuses = self.api_client.get_statuses(since=timestamp)
+        statuses = self.api_client.get_statuses("company_x", "car_a", since=timestamp)
         # the status from button_1 is not present in the list of statuses
         self.assertEqual(len(statuses), 2)
         self.assertNotIn(button_1_id, [status.device_id for status in statuses])
@@ -111,7 +111,7 @@ class Test_Device_Disconnection(unittest.TestCase):
         self.ec.post(status("new_id", DeviceState.RUNNING, button_1, 2, payload))
 
         time.sleep(0.5)
-        statuses = self.api_client.get_statuses(since=timestamp)
+        statuses = self.api_client.get_statuses("company_x", "car_a", since=timestamp)
         self.assertEqual(len(statuses), 1)
         self.assertEqual(statuses[0].payload.data.to_dict()["data"][2]["butPr"], 1)
 

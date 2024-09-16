@@ -56,7 +56,9 @@ def station(name: str, position: Position) -> dict:
     return {"name": name, "position": MessageToDict(position)}
 
 
-def api_command(device_id: DeviceId, action: Action, stops: list[Station], route: str) -> Message:
+def api_autonomy_command(
+    device_id: DeviceId, action: Action, stops: list[Station], route: str
+) -> Message:
     """Create a command message."""
     command_data = AutonomyCommand(stops=stops, action=action.value, route=route)
     payload_dict = {
@@ -72,7 +74,7 @@ def api_command(device_id: DeviceId, action: Action, stops: list[Station], route
     return message
 
 
-def api_status(
+def api_autonomy_status(
     device_id: DeviceId,
     state: AutonomyState,
     telemetry: AutonomyStatus.Telemetry,
@@ -84,6 +86,21 @@ def api_status(
         "encoding": "JSON",
         "message_type": "STATUS",
         "data": MessageToDict(status_data),
+    }
+    message = Message(
+        device_id=device_id,
+        timestamp=int(time.time() * 1000),
+        payload=Payload.from_dict(payload_dict),
+    )
+    return message
+
+
+def api_io_command(device_id: DeviceId, data) -> Message:
+    """Create a command message."""
+    payload_dict = {
+        "encoding": "JSON",
+        "message_type": "COMMAND",
+        "data": data,
     }
     message = Message(
         device_id=device_id,
@@ -157,7 +174,7 @@ def telemetry(
     return AutonomyStatus.Telemetry(speed=speed, fuel=fuel, position=position)
 
 
-def status_data(
+def autonomy_status_data(
     state: AutonomyState = AutonomyState.DRIVE,
     telemetry: AutonomyStatus.Telemetry = telemetry(),
     next_stop: Station = Station(

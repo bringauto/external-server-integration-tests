@@ -36,7 +36,7 @@ class Test_Status_Error(unittest.TestCase):
         clear_logs()
         _comm_layer.start()
         self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
-        self.api_client = ApiClientMock(API_HOST, "company_x", "car_a", "TestAPIKey")
+        self.api_client = ApiClientMock(API_HOST, "TestAPIKey")
         docker_compose_up()
         self._run_connect_sequence(autonomy=autonomy, ext_client=self.ec)
 
@@ -45,7 +45,7 @@ class Test_Status_Error(unittest.TestCase):
         payload = AutonomyStatus().SerializeToString()
         self.ec.post(status("id", DeviceState.RUNNING, autonomy, 1, payload, error), sleep=0.1)
         time.sleep(0.5)
-        messages = self.api_client.get_statuses()[-1].payload.data.to_dict()
+        messages = self.api_client.get_statuses("company_x", "car_a")[-1].payload.data.to_dict()
         self.assertEqual(len(messages), 1)
 
     def test_nonempty_error_message_is_forwarded_to_api(self):
@@ -55,7 +55,7 @@ class Test_Status_Error(unittest.TestCase):
         payload = AutonomyStatus().SerializeToString()
         self.ec.post(status("id", DeviceState.RUNNING, autonomy, 1, payload, error), sleep=0.1)
         time.sleep(1)
-        messages = self.api_client.get_statuses()
+        messages = self.api_client.get_statuses("company_x", "car_a")
         self.assertEqual(messages[-1].payload.message_type, "STATUS_ERROR")
         self.assertEqual(messages[-1].payload.data.to_dict()["finishedStops"][0]["name"], "stop_a")
 

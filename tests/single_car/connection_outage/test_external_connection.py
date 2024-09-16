@@ -29,7 +29,7 @@ class Test_New_Connection_Sequence_Is_Accepted_After_Mqtt_Timeout(unittest.TestC
     def setUp(self) -> None:
         _comm_layer.start()
         self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
-        self.api_client = ApiClientMock(API_HOST, "company_x", "car_a", "TestAPIKey")
+        self.api_client = ApiClientMock(API_HOST, "TestAPIKey")
         clear_logs()
         docker_compose_up()
         self.payload = AutonomyStatus().SerializeToString()
@@ -46,7 +46,7 @@ class Test_New_Connection_Sequence_Is_Accepted_After_Mqtt_Timeout(unittest.TestC
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         self.ec.post(command_response("id", CmdResponseType.OK, 0))
         time.sleep(1)
-        s = self.api_client.get_statuses()
+        s = self.api_client.get_statuses("company_x", "car_a")
         self.assertEqual(len(s), 2)
 
     def tearDown(self) -> None:

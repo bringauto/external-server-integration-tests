@@ -35,7 +35,7 @@ class Test_Message_Timeout(unittest.TestCase):
         clear_logs()
         _comm_layer.start()
         self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
-        self.api_client = ApiClientMock(API_HOST, "company_x", "car_a", "TestAPIKey")
+        self.api_client = ApiClientMock(API_HOST, "TestAPIKey")
         docker_compose_up()
         self.msg_timeout = json.load(open("config/external-server/config.json"))["timeout"]
 
@@ -50,7 +50,7 @@ class Test_Message_Timeout(unittest.TestCase):
         self.ec.post(status("id", DeviceState.RUNNING, autonomy, 1, payload), sleep=0.1)
 
         time.sleep(0.5)
-        s = self.api_client.get_statuses()
+        s = self.api_client.get_statuses("company_x", "car_a")
         self.assertEqual(s[-1].payload.data.to_dict()["state"], "OBSTACLE")
 
     def test_not_receiving_connecting_status_resets_connection_sequence(self):
@@ -65,7 +65,7 @@ class Test_Message_Timeout(unittest.TestCase):
         payload = AutonomyStatus(state=AutonomyState.OBSTACLE.value).SerializeToString()
         self.ec.post(status("other_id", DeviceState.RUNNING, autonomy, 1, payload), sleep=0.1)
         time.sleep(1)
-        s = self.api_client.get_statuses()
+        s = self.api_client.get_statuses("company_x", "car_a")
         self.assertEqual(s[-1].payload.data.to_dict()["state"], "OBSTACLE")
 
     def test_not_receiving_first_command_response_resets_connection_sequence(self):
@@ -82,7 +82,7 @@ class Test_Message_Timeout(unittest.TestCase):
         payload = AutonomyStatus(state=AutonomyState.OBSTACLE.value).SerializeToString()
         self.ec.post(status("other_id", DeviceState.RUNNING, autonomy, 1, payload), sleep=0.1)
         time.sleep(1)
-        s = self.api_client.get_statuses()
+        s = self.api_client.get_statuses("company_x", "car_a")
         self.assertEqual(s[-1].payload.data.to_dict()["state"], "OBSTACLE")
 
     def tearDown(self):

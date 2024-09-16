@@ -19,7 +19,7 @@ from tests._utils.messages import (
     status,
     Station,
     command_response,
-    api_command,
+    api_autonomy_command,
     device_obj,
     device_id,
     DeviceState,
@@ -40,11 +40,11 @@ class Test_Message_Order(unittest.TestCase):
 
     def setUp(self) -> None:
         _comm_layer.start()
-        self.ec = ExternalClientMock(_comm_layer, "company_x", "car_1")
-        self.api_client = ApiClientMock(API_HOST, "company_x", "car_1", "TestAPIKey")
+        self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
+        self.api_client = ApiClientMock(API_HOST, "TestAPIKey")
         clear_logs()
         docker_compose_up()
-        self._run_connect_sequence(car_name = "car_1")
+        self._run_connect_sequence(car_name = "car_a")
         time.sleep(0.5)
 
     def test_statuses_received_in_incorrect_are_published_to_api_in_correct_order(self):
@@ -54,7 +54,7 @@ class Test_Message_Order(unittest.TestCase):
         self.ec.post(status("id", DeviceState.RUNNING, autonomy, 1, payload_1), sleep=0.2)
         self.ec.post(status("id", DeviceState.RUNNING, autonomy, 3, payload_3), sleep=0.2)
 
-        statuses = self.api_client.get_statuses()
+        statuses = self.api_client.get_statuses("company_x", "car_a")
         # only the status from connect sequence and the first status are published to the API
         # status with counter value 3 is not published - counter value 2 is missing
         self.assertEqual(len(statuses), 2)
@@ -62,7 +62,7 @@ class Test_Message_Order(unittest.TestCase):
         self.assertEqual(statuses[1].payload.data.to_dict()["state"], "OBSTACLE")
 
         self.ec.post(status("id", DeviceState.RUNNING, autonomy, 2, payload_2), sleep=0.5)
-        statuses = self.api_client.get_statuses()
+        statuses = self.api_client.get_statuses("company_x", "car_a")
         # all statuses are now published to the API in correct order
         self.assertEqual(len(statuses), 4)
         self.assertEqual(statuses[2].payload.data.to_dict()["state"], "IDLE")
@@ -74,14 +74,16 @@ class Test_Message_Order(unittest.TestCase):
         with futures.ThreadPoolExecutor() as executor:
             f1 = executor.submit(self.ec.get, n=3)
             self.api_client.post_commands(
-                api_command(
+                "company_x",
+                "car_a",
+                api_autonomy_command(
                     autonomy_id,
                     Action.START,
                     [Station(name="station_a", position=position(1, 1, 1))],
                     "route_1",
                 ),
-                api_command(autonomy_id, Action.NO_ACTION, [], ""),
-                api_command(
+                api_autonomy_command(autonomy_id, Action.NO_ACTION, [], ""),
+                api_autonomy_command(
                     autonomy_id,
                     Action.START,
                     [Station(name="station_b", position=position(2, 2, 2))],

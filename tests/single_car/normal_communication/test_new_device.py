@@ -47,7 +47,7 @@ class Test_New_Supported_Device_Connecting_After_Connect_Sequence(unittest.TestC
         clear_logs()
         _comm_layer.start()
         self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
-        self.api_client = ApiClientMock(API_HOST, "company_x", "car_a", "TestAPIKey")
+        self.api_client = ApiClientMock(API_HOST, "TestAPIKey")
         docker_compose_up()
         self._run_connect_sequence(autonomy=autonomy, ext_client=self.ec)
 
@@ -63,7 +63,7 @@ class Test_New_Supported_Device_Connecting_After_Connect_Sequence(unittest.TestC
             payload=json.dumps(payload).encode(),
         )
         self.ec.post(connect_status, sleep=0.2)
-        statuses = self.api_client.get_statuses()
+        statuses = self.api_client.get_statuses("company_x", "car_a")
         self.assertEqual(len(statuses), 2)
         self.assertEqual(statuses[0].device_id, autonomy_id)
         self.assertEqual(statuses[1].device_id, button_id)
@@ -80,7 +80,7 @@ class Test_New_Supported_Device_Connecting_After_Connect_Sequence(unittest.TestC
             payload=json.dumps(payload).encode(),
         )
         self.ec.post(running_status, sleep=0.2)
-        statuses = self.api_client.get_statuses()
+        statuses = self.api_client.get_statuses("company_x", "car_a")
         self.assertEqual(len(statuses), 1)
 
     def test_running_status_after_connecting_status_becomes_available_on_api(self):
@@ -101,7 +101,7 @@ class Test_New_Supported_Device_Connecting_After_Connect_Sequence(unittest.TestC
         )
         self.ec.post(connect_status, sleep=0.2)
         self.ec.post(running_status, sleep=0.2)
-        statuses = self.api_client.get_statuses()
+        statuses = self.api_client.get_statuses("company_x", "car_a")
         self.assertEqual(len(statuses), 3)
 
     def tearDown(self):
@@ -128,7 +128,7 @@ class Test_New_Unsupported_Device_Connecting_After_Connect_Sequence(unittest.Tes
         clear_logs()
         _comm_layer.start()
         self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
-        self.api_client = ApiClientMock(API_HOST, "company_x", "car_a", "TestAPIKey")
+        self.api_client = ApiClientMock(API_HOST, "TestAPIKey")
         docker_compose_up()
         self._run_connect_sequence(autonomy=autonomy, ext_client=self.ec)
         time.sleep(1)
@@ -145,7 +145,7 @@ class Test_New_Unsupported_Device_Connecting_After_Connect_Sequence(unittest.Tes
             payload=json.dumps(payload).encode(),
         )
         self.ec.post(connect_status, sleep=0.2)
-        statuses = self.api_client.get_statuses()
+        statuses = self.api_client.get_statuses("company_x", "car_a")
         self.assertEqual(len(statuses), 1)
         self.assertEqual(statuses[0].device_id, autonomy_id)
 
@@ -161,7 +161,7 @@ class Test_New_Unsupported_Device_Connecting_After_Connect_Sequence(unittest.Tes
             payload=json.dumps(payload).encode(),
         )
         self.ec.post(connect_status, sleep=0.2)
-        statuses = self.api_client.get_statuses()
+        statuses = self.api_client.get_statuses("company_x", "car_a")
         self.assertEqual(len(statuses), 1)
         self.assertEqual(statuses[0].device_id, autonomy_id)
 

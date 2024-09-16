@@ -14,8 +14,8 @@ from tests._utils.messages import (
     AutonomyStatus,
     CmdResponseType,
     DeviceState,
-    api_command,
-    api_status,
+    api_autonomy_command,
+    api_autonomy_status,
     command_response,
     connect_msg,
     device_id,
@@ -37,18 +37,18 @@ class Test_Connection_Sequence(unittest.TestCase):
     def setUp(self) -> None:
         clear_logs()
         comm_layer.start()
-        self.ec = ExternalClientMock(comm_layer, "company_x", "car_1")
-        self.api = ApiClientMock(API_HOST, "company_x", "car_1", "TestAPIKey")
+        self.ec = ExternalClientMock(comm_layer, "company_x", "car_a")
+        self.api = ApiClientMock(API_HOST, "TestAPIKey")
         docker_compose_up()
         self.payload = AutonomyStatus().SerializeToString()
 
     def test_sending_connect_message_statuses_and_commands_makes_successful_connect_sequence(
         self,
     ):
-        self.ec.post(connect_msg("id", "company_x", "car_1", [autonomy]), sleep=0.1)
+        self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         self.ec.post(command_response("id", CmdResponseType.OK, 0), sleep=1)
-        s = self.api.get_statuses()[0]
+        s = self.api.get_statuses("company_x", "car_a")[0]
         self.assertEqual(s.device_id.module_id, autonomy.module)
         self.assertEqual(s.device_id.type, autonomy.deviceType)
         self.assertEqual(s.device_id.role, autonomy.deviceRole)
@@ -58,20 +58,20 @@ class Test_Connection_Sequence(unittest.TestCase):
         self.assertEqual(s.payload.data.to_dict()["state"], "IDLE")
 
     def test_sending_connect_msg_twice_stops_sequence_and_prevents_sending_status(self):
-        self.ec.post(connect_msg("id", "company_x", "car_1", [autonomy]), sleep=0.1)
-        self.ec.post(connect_msg("id", "company_x", "car_1", [autonomy]), sleep=0.1)
+        self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
+        self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         time.sleep(0.5)
-        statuses = self.api.get_statuses(wait=True)
+        statuses = self.api.get_statuses("company_x", "car_a", wait=True)
         self.assertEqual(len(statuses), 0)
 
     def test_sending_status_twice_stops_the_sequence_and_prevents_sending_of_command_via_mqtt(
         self,
     ):
-        self.ec.post(connect_msg("id", "company_x", "car_1", [autonomy]), sleep=0.1)
+        self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
-        s = self.api.get_statuses(wait=True)[0]
+        s = self.api.get_statuses("company_x", "car_a", wait=True)[0]
         self.assertEqual(s.device_id.module_id, autonomy.module)
         self.assertEqual(s.device_id.type, autonomy.deviceType)
         self.assertEqual(s.device_id.role, autonomy.deviceRole)
@@ -86,18 +86,19 @@ class Test_Connection_Sequence(unittest.TestCase):
         telemetry = AutonomyStatus.Telemetry(
             speed=0.0, fuel=0.85, position=position(49.0, 16.0, 123.4)
         )
-        self.api.post_statuses(api_status(autonomy_id, AutonomyState.DRIVE, telemetry, stop_b))
+        self.api.post_statuses("company_x", "car_a", api_autonomy_status(autonomy_id, AutonomyState.DRIVE, telemetry, stop_b))
         time.sleep(0.5)
-        statuses = self.api.get_statuses()
+        statuses = self.api.get_statuses("company_x", "car_a")
         self.api.post_commands(
-            api_command(autonomy_id, Action.START, [stop_a], "route_1"),
-            api_command(autonomy_id, Action.START, [stop_a, stop_b], "route_1"),
+            "company_x", "car_a",
+            api_autonomy_command(autonomy_id, Action.START, [stop_a], "route_1"),
+            api_autonomy_command(autonomy_id, Action.START, [stop_a, stop_b], "route_1"),
         )
-        self.ec.post(connect_msg("id", "company_x", "car_1", [autonomy]), sleep=0.2)
+        self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.2)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         self.ec.post(command_response("id", CmdResponseType.OK, 0))
         time.sleep(0.5)
-        statuses = self.api.get_statuses()
+        statuses = self.api.get_statuses("company_x", "car_a")
         self.assertEqual(statuses[-1].device_id.module_id, autonomy.module)
         self.assertEqual(statuses[-1].device_id.type, autonomy.deviceType)
         self.assertEqual(statuses[-1].device_id.role, autonomy.deviceRole)
