@@ -75,54 +75,25 @@ class Test_Connection_Sequence(unittest.TestCase):
         self.assertEqual(s_2.payload.encoding, "JSON")
         self.assertEqual(s_2.payload.data.to_dict()["state"], "IDLE")
 
-    # def test_sending_connect_msg_twice_stops_sequence_and_prevents_sending_status(self):
-    #     self.ec_1.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
-    #     self.ec_1.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
-    #     self.ec_1.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
-    #     time.sleep(0.5)
-    #     statuses = self.api_1.get_statuses(wait=True)
-    #     self.assertEqual(len(statuses), 0)
+    def test_one_failing_connect_sequence_does_not_affect_other_car_connect_sequence(self):
+        # connect sequence runs only for car_1
+        self.ec_1.post(connect_msg("id", "company_x", "car_1", [autonomy]), sleep=0.1)
+        self.ec_1.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
+        self.ec_1.post(command_response("id", CmdResponseType.OK, 0))
 
-    # def test_sending_status_twice_stops_the_sequence_and_prevents_sending_of_command_via_mqtt(
-    #     self,
-    # ):
-    #     self.ec_1.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.1)
-    #     self.ec_1.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
-    #     self.ec_1.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
-    #     s = self.api_1.get_statuses(wait=True)[0]
-    #     self.assertEqual(s.device_id.module_id, autonomy.module)
-    #     self.assertEqual(s.device_id.type, autonomy.deviceType)
-    #     self.assertEqual(s.device_id.role, autonomy.deviceRole)
-    #     self.assertEqual(s.device_id.name, autonomy.deviceName)
-    #     self.assertEqual(s.payload.data.to_dict()["state"], "IDLE")
+        time.sleep(0.5)
 
-    # def test_sending_getting_multiple_commands_does_not_interrupt_the_connect_sequence(
-    #     self,
-    # ):
-    #     stop_a = station("stop_a", position(49.1, 16.0, 123.4))
-    #     stop_b = station("stop_b", position(49.2, 16.01, 129.4))
-    #     telemetry = AutonomyStatus.Telemetry(
-    #         speed=0.0, fuel=0.85, position=position(49.0, 16.0, 123.4)
-    #     )
-    #     self.api_1.post_statuses(api_status(autonomy_id, AutonomyState.DRIVE, telemetry, stop_b))
-    #     time.sleep(0.5)
-    #     statuses = self.api_1.get_statuses()
-    #     self.api_1.post_commands(
-    #         api_command(autonomy_id, Action.START, [stop_a], "route_1"),
-    #         api_command(autonomy_id, Action.START, [stop_a, stop_b], "route_1"),
-    #     )
-    #     self.ec_1.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.2)
-    #     self.ec_1.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
-    #     self.ec_1.post(command_response("id", CmdResponseType.OK, 0))
-    #     time.sleep(0.5)
-    #     statuses = self.api_1.get_statuses()
-    #     self.assertEqual(statuses[-1].device_id.module_id, autonomy.module)
-    #     self.assertEqual(statuses[-1].device_id.type, autonomy.deviceType)
-    #     self.assertEqual(statuses[-1].device_id.role, autonomy.deviceRole)
-    #     self.assertEqual(statuses[-1].device_id.name, autonomy.deviceName)
-    #     self.assertEqual(statuses[-1].payload.message_type, "STATUS")
-    #     self.assertEqual(statuses[-1].payload.encoding, "JSON")
-    #     self.assertEqual(len(statuses), 2)
+        self.ec_1.post(status("id", DeviceState.RUNNING, autonomy, 0, self.payload), sleep=0.1)
+        self.ec_2.post(status("id", DeviceState.RUNNING, autonomy, 0, self.payload), sleep=0.1)
+
+        time.sleep(0.5)
+
+        # status for car_1 has been succesfully sent
+        statuses = self.api_1.get_statuses()
+        self.assertEqual(len(statuses), 2)
+        # no status for car_2 - connect sequence failed
+        statuses = self.api_2.get_statuses()
+        self.assertEqual(len(statuses), 0)
 
     def tearDown(self):
         docker_compose_down()
