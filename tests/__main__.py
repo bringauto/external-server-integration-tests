@@ -4,6 +4,7 @@ import unittest
 
 
 TEST_DIR_NAME = "tests"
+TEST_FILE_NAME_PATTERN = "test_*.py"
 
 
 def _run_tests(show_test_names: bool = True) -> None:
@@ -24,7 +25,7 @@ def _run_tests(show_test_names: bool = True) -> None:
             if file_name.endswith(".py"):
                 pattern, dir = file_name, os.path.dirname(path)
         else:
-            pattern, dir = "test_*.py", path
+            pattern, dir = TEST_FILE_NAME_PATTERN, path
         suite.addTests(unittest.TestLoader().discover(dir, pattern=pattern))
     verbosity = 2 if show_test_names else 1
     unittest.TextTestRunner(verbosity=verbosity, buffer=True).run(suite)
