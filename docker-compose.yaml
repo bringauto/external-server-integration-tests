@@ -1,8 +1,6 @@
 services:
   external-server:
-    # image: $EXTERNAL_SERVER_IMAGE
-    build:
-      context: /home/jiri-strouhal/Plocha/external-server
+    image: $EXTERNAL_SERVER_IMAGE
     entrypoint:
       [
         "python3",
