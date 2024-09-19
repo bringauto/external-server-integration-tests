@@ -57,7 +57,7 @@ class Test_Message_Timeout(unittest.TestCase):
         # status is published with new session id and forwared to the API
         self.ec.post(status("new_id", DeviceState.RUNNING, autonomy, 1, payload), sleep=0.1)
         time.sleep(0.5)
-        s = self.api_client.get_statuses(since=timestamp)
+        s = self.api_client.get_statuses("company_x", "car_a", since=timestamp)
         self.assertEqual(len(s), 1)
 
     def test_not_receiving_cmd_response_allows_for_new_connect_seq_with_new_session_id(
@@ -75,7 +75,7 @@ class Test_Message_Timeout(unittest.TestCase):
         # status is published with new session id and forwared to the API
         self.ec.post(status("new_id", DeviceState.RUNNING, autonomy, 1, payload), sleep=0.1)
         time.sleep(0.5)
-        s = self.api_client.get_statuses(since=timestamp)
+        s = self.api_client.get_statuses("company_x", "car_a", since=timestamp)
         self.assertEqual(len(s), 1)
 
     def tearDown(self):
