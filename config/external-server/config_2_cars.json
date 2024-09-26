@@ -1,6 +1,6 @@
 {
   "general-settings": {
-    "log-path": "log",
+    "log-path": "/home/bringauto/log",
     "verbose": true
   },
   "mqtt_address": "172.17.0.1",
