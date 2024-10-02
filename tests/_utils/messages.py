@@ -78,10 +78,11 @@ def api_autonomy_status(
     device_id: DeviceId,
     state: AutonomyState,
     telemetry: AutonomyStatus.Telemetry,
-    next_stop: Station,
+    next_stop: Optional[Station] = None,
 ) -> Message:
     """Create a status message."""
-    status_data = AutonomyStatus(telemetry=telemetry, state=state.value, nextStop=next_stop)
+    state_val = state.value if isinstance(state, AutonomyState) else state
+    status_data = AutonomyStatus(telemetry=telemetry, state=state_val, nextStop=next_stop)
     payload_dict = {
         "encoding": "JSON",
         "message_type": "STATUS",

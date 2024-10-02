@@ -1,13 +1,18 @@
 import unittest
 import json
 import time
+from concurrent import futures
 
 from tests._utils.misc import clear_logs
 from tests._utils.api_client_mock import ApiClientMock
 from tests._utils.external_client import ExternalClientMock, communication_layer
 from tests._utils.docker import docker_compose_up, docker_compose_down
 from tests._utils.messages import (
+    Action,
     AutonomyStatus,
+    AutonomyState,
+    telemetry,
+    api_autonomy_status,
     command_response,
     connect_msg,
     device_obj,
@@ -15,6 +20,7 @@ from tests._utils.messages import (
     CmdResponseType,
     DeviceState,
     status,
+    api_autonomy_command
 )
 
 
@@ -48,6 +54,26 @@ class Test_New_Connection_Sequence_Is_Accepted_After_Mqtt_Timeout(unittest.TestC
         time.sleep(1)
         s = self.api_client.get_statuses("company_x", "car_a")
         self.assertEqual(len(s), 2)
+
+    def test_commands_not_send_during_external_connection_outage_are_sent_after_reconnection(self):
+        with futures.ThreadPoolExecutor() as ex:
+            # the connection is now not established
+            command_1 = api_autonomy_command(autonomy_id, Action.NO_ACTION, [], "")
+            command_2 = api_autonomy_command(autonomy_id, Action.START, [], "route_1")
+            self.api_client.post_statuses("company_x", "car_a", api_autonomy_status(autonomy_id, AutonomyStatus.IDLE, telemetry=telemetry()))
+            self.api_client.post_commands("company_x", "car_a", command_1)
+            self.api_client.post_commands("company_x", "car_a", command_2)
+
+            # reconnection
+            self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.2)
+
+            f = ex.submit(self.ec.get, 2)
+
+            self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
+            self.ec.post(command_response("id", CmdResponseType.OK, 0))
+
+            messages = f.result()
+            self.assertEqual(len(messages), 2)
 
     def tearDown(self) -> None:
         docker_compose_down()
