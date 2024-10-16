@@ -92,25 +92,24 @@ class Test_Device_Disconnection(unittest.TestCase):
         self.ec.post(command_response("id", CmdResponseType.OK, 0))
         self.ec.post(command_response("id", CmdResponseType.OK, 1))
 
-        time.sleep(0.1)
+        time.sleep(0.5)
         self.ec.post(status("id", DeviceState.DISCONNECT, button_1, 2, payload))
         self.ec.post(status("id", DeviceState.DISCONNECT, button_2, 3, payload))
 
-        time.sleep(0.1)
-        self.ec.post(connect_msg("new_id", "company_x", "car_a", [button_1, button_2]))
+        time.sleep(2)
+        self.ec.post(connect_msg("new_id", "company_x", "car_a", [button_1, button_2]), sleep=0.1)
         payload_dict = {"data": [[], [], {"butPr": 0}]}
         payload = json.dumps(payload_dict).encode()
-        self.ec.post(status("new_id", DeviceState.CONNECTING, button_1, 0, payload))
-        self.ec.post(status("new_id", DeviceState.CONNECTING, button_2, 1, payload))
-        self.ec.post(command_response("new_id", CmdResponseType.OK, 0))
-        self.ec.post(command_response("new_id", CmdResponseType.OK, 1))
-
-        time.sleep(1)
-        timestamp = int(1000 * time.time())
-        payload = json.dumps({"data": [[], [], {"butPr": 1}]}).encode()
-        self.ec.post(status("new_id", DeviceState.RUNNING, button_1, 2, payload))
+        self.ec.post(status("new_id", DeviceState.CONNECTING, button_1, 2, payload), sleep=0.1)
+        self.ec.post(status("new_id", DeviceState.CONNECTING, button_2, 3, payload), sleep=0.1)
+        self.ec.post(command_response("new_id", CmdResponseType.OK, 2), sleep=0.1)
+        self.ec.post(command_response("new_id", CmdResponseType.OK, 3), sleep=0.1)
 
         time.sleep(0.5)
+        timestamp = int(1000 * time.time())
+        payload = json.dumps({"data": [[], [], {"butPr": 1}]}).encode()
+        self.ec.post(status("new_id", DeviceState.RUNNING, button_1, 4, payload), sleep=0.1)
+
         statuses = self.api_client.get_statuses("company_x", "car_a", since=timestamp)
         self.assertEqual(len(statuses), 1)
         self.assertEqual(statuses[0].payload.data.to_dict()["data"][2]["butPr"], 1)

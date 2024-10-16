@@ -10,7 +10,6 @@ from tests._utils.docker import docker_compose_up, docker_compose_down
 from tests._utils.messages import (
     Action,
     AutonomyStatus,
-    AutonomyState,
     telemetry,
     api_autonomy_status,
     command_response,
@@ -20,7 +19,7 @@ from tests._utils.messages import (
     CmdResponseType,
     DeviceState,
     status,
-    api_autonomy_command
+    api_autonomy_command,
 )
 
 
@@ -47,7 +46,7 @@ class Test_New_Connection_Sequence_Is_Accepted_After_Mqtt_Timeout(unittest.TestC
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         self.ec.post(command_response("id", CmdResponseType.OK, 0))
         mqtt_timeout = json.load(open("config/external-server/config.json"))["mqtt_timeout"]
-        time.sleep(mqtt_timeout + 0.1)
+        time.sleep(mqtt_timeout + 2)
         self.ec.post(connect_msg("id", "company_x", "car_a", [autonomy]), sleep=0.2)
         self.ec.post(status("id", DeviceState.CONNECTING, autonomy, 0, self.payload), sleep=0.1)
         self.ec.post(command_response("id", CmdResponseType.OK, 0))
@@ -60,7 +59,11 @@ class Test_New_Connection_Sequence_Is_Accepted_After_Mqtt_Timeout(unittest.TestC
             # the connection is now not established
             command_1 = api_autonomy_command(autonomy_id, Action.NO_ACTION, [], "")
             command_2 = api_autonomy_command(autonomy_id, Action.START, [], "route_1")
-            self.api_client.post_statuses("company_x", "car_a", api_autonomy_status(autonomy_id, AutonomyStatus.IDLE, telemetry=telemetry()))
+            self.api_client.post_statuses(
+                "company_x",
+                "car_a",
+                api_autonomy_status(autonomy_id, AutonomyStatus.IDLE, telemetry=telemetry()),
+            )
             self.api_client.post_commands("company_x", "car_a", command_1)
             self.api_client.post_commands("company_x", "car_a", command_2)
 

@@ -2,13 +2,7 @@ services:
   external-server:
     # image: $EXTERNAL_SERVER_IMAGE
     build: /home/jiri-strouhal/Plocha/external-server
-    entrypoint:
-      [
-        "python3",
-        "/home/bringauto/external_server/external_server_main.py",
-        "-c",
-        "./config/config.json",
-      ]
+    command: -c "./config/config.json"
     volumes:
       - "./config/external-server:/home/bringauto/config"
       - "./config/external-server/$CONFIG_NAME:/home/bringauto/config/config.json"
@@ -55,6 +49,14 @@ services:
       - 5432:5432
     volumes:
       - ./db/insert_test_api_key.sh:/docker-entrypoint-initdb.d/insert_test_api_key.sh
+
+  initialize-log-folders:
+    image: ubuntu:24.04
+    restart: "no"
+    volumes:
+      - ./log:/home/bringauto/log/
+    entrypoint:
+      ["/usr/bin/chown", "-R", "5000:5000", "/home/bringauto/log"]
 
 networks:
   external-server-test:

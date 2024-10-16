@@ -23,10 +23,11 @@ from tests._utils.messages import (
 
 
 def clear_logs() -> None:
-    if os.path.isfile("./log/external-server/external_server.log"):
-        os.remove("./log/external-server/external_server.log")
-    if os.path.isfile("./log/module-gateway/ModuleGateway.log"):
-        os.remove("./log/module-gateway/ModuleGateway.log")
+    pass
+    # if os.path.isfile("./log/external-server/external_server.log"):
+    #     os.remove("./log/external-server/external_server.log")
+    # if os.path.isfile("./log/module-gateway/ModuleGateway.log"):
+    #     os.remove("./log/module-gateway/ModuleGateway.log")
 
 
 API_HOST = "http://localhost:8080/v2/protocol"
