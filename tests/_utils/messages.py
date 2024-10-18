@@ -129,14 +129,14 @@ def connect_msg(session_id: str, company: str, car_name: str, devices: list[Devi
     )
 
 
-def device_id(module_id: int, type: int, role: str, name: str, **kwargs) -> DeviceId:
-    return DeviceId(module_id=module_id, type=type, role=role, name=name)
+def device_id(module_id: int, device_type: int, role: str, name: str, **kwargs) -> DeviceId:
+    return DeviceId(module_id=module_id, type=device_type, role=role, name=name)
 
 
-def device_obj(module_id: int, type: int, role: str, name: str, priority: int = 0) -> Device:
+def device_obj(module_id: int, device_type: int, role: str, name: str, priority: int = 0) -> Device:
     return Device(
         module=module_id,
-        deviceType=type,
+        deviceType=device_type,
         deviceRole=role,
         deviceName=name,
         priority=priority,

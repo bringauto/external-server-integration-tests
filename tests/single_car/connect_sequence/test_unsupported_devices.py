@@ -15,8 +15,8 @@ from tests._utils.messages import (
 )
 
 
-autonomy = device_obj(module_id=1, type=1, role="driving", name="Autonomy", priority=0)
-autonomy_id = device_id(module_id=1, type=1, role="driving", name="Autonomy")
+autonomy = device_obj(module_id=1, device_type=1, role="driving", name="Autonomy", priority=0)
+autonomy_id = device_id(module_id=1, device_type=1, role="driving", name="Autonomy")
 API_HOST = "http://localhost:8080/v2/protocol"
 _comm_layer = communication_layer()
 
@@ -35,7 +35,7 @@ class Test_Unsupported_Device(unittest.TestCase):
     ):
         unsupported_device = device_obj(
             module_id=1,
-            type=123456789,
+            device_type=123456789,
             role="notdriving",
             name="UnsupportedDevice",
             priority=0,
@@ -60,7 +60,7 @@ class Test_Unsupported_Device(unittest.TestCase):
         self,
     ):
         unsupp_module_device = device_obj(
-            module_id=123456789, type=1, role="test", name="TestDevice", priority=0
+            module_id=123456789, device_type=1, role="test", name="TestDevice", priority=0
         )
         self.ec.post(
             connect_msg("id", "company_x", "car_a", [autonomy, unsupp_module_device]),

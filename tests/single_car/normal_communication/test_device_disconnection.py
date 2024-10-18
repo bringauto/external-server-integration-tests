@@ -18,9 +18,9 @@ from tests._utils.messages import (
 
 API_HOST = "http://localhost:8080/v2/protocol"
 _comm_layer = communication_layer()
-button_1 = device_obj(module_id=2, type=3, role="button_1", name="Button1", priority=0)
+button_1 = device_obj(module_id=2, device_type=3, role="button_1", name="Button1", priority=0)
 button_1_id = DeviceId(module_id=2, type=3, role="button_1", name="Button1")
-button_2 = device_obj(module_id=2, type=3, role="button_2", name="Button2", priority=0)
+button_2 = device_obj(module_id=2, device_type=3, role="button_2", name="Button2", priority=0)
 
 
 class Test_Device_Disconnection(unittest.TestCase):

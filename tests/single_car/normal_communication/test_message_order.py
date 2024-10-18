@@ -30,8 +30,8 @@ from tests._utils.docker import docker_compose_up, docker_compose_down
 
 API_HOST = "http://localhost:8080/v2/protocol"
 _comm_layer = communication_layer()
-autonomy = device_obj(module_id=1, type=1, role="driving", name="Autonomy", priority=0)
-autonomy_id = device_id(module_id=1, type=1, role="driving", name="Autonomy")
+autonomy = device_obj(module_id=1, device_type=1, role="driving", name="Autonomy", priority=0)
+autonomy_id = device_id(module_id=1, device_type=1, role="driving", name="Autonomy")
 
 
 class Test_Message_Order(unittest.TestCase):

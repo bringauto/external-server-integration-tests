@@ -27,8 +27,8 @@ from tests._utils.messages import (
 from ExternalProtocol_pb2 import ExternalServer as ExternalServerMsg  # type: ignore
 
 
-autonomy = device_obj(module_id=1, type=1, role="driving", name="Autonomy", priority=0)
-autonomy_id = device_id(module_id=1, type=1, role="driving", name="Autonomy")
+autonomy = device_obj(module_id=1, device_type=1, role="driving", name="Autonomy", priority=0)
+autonomy_id = device_id(module_id=1, device_type=1, role="driving", name="Autonomy")
 API_HOST = "http://localhost:8080/v2/protocol"
 
 
@@ -124,7 +124,7 @@ class Test_Messages_From_Unsupported_Device(unittest.TestCase):
         timestamp = int(time.time() * 1000)
         unsupported_device = device_obj(
             module_id=1,
-            type=123456789,
+            device_type=123456789,
             role="notdriving",
             name="UnsupportedDevice",
             priority=0,

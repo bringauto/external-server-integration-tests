@@ -24,10 +24,10 @@ from tests._utils.messages import (
 from ExternalProtocol_pb2 import ExternalServer as ExternalServerMsg  # type: ignore
 
 
-autonomy = device_obj(module_id=1, type=1, role="driving", name="Autonomy", priority=0)
-autonomy_id = device_id(module_id=1, type=1, role="driving", name="Autonomy")
-button = device_obj(module_id=2, type=3, role="io", name="Button", priority=0)
-button_id = device_id(module_id=2, type=3, role="io", name="Button")
+autonomy = device_obj(module_id=1, device_type=1, role="driving", name="Autonomy", priority=0)
+autonomy_id = device_id(module_id=1, device_type=1, role="driving", name="Autonomy")
+button = device_obj(module_id=2, device_type=3, role="io", name="Button", priority=0)
+button_id = device_id(module_id=2, device_type=3, role="io", name="Button")
 API_HOST = "http://localhost:8080/v2/protocol"
 comm_layer = communication_layer()
 

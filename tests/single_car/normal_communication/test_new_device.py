@@ -21,10 +21,10 @@ from tests._utils.messages import (
 API_HOST = "http://localhost:8080/v2/protocol"
 
 
-autonomy = device_obj(module_id=1, type=1, role="driving", name="Autonomy", priority=0)
-autonomy_id = device_id(module_id=1, type=1, role="driving", name="Autonomy")
-button = device_obj(module_id=2, type=3, role="button", name="Button", priority=0)
-button_id = device_id(module_id=2, type=3, role="button", name="Button")
+autonomy = device_obj(module_id=1, device_type=1, role="driving", name="Autonomy", priority=0)
+autonomy_id = device_id(module_id=1, device_type=1, role="driving", name="Autonomy")
+button = device_obj(module_id=2, device_type=3, role="button", name="Button", priority=0)
+button_id = device_id(module_id=2, device_type=3, role="button", name="Button")
 
 
 _comm_layer = communication_layer()
@@ -107,7 +107,9 @@ class Test_New_Supported_Device_Connecting_After_Connect_Sequence(unittest.TestC
 
 
 # the device type is not supported by module 2
-unsupported_button = device_obj(module_id=2, type=1111, role="button", name="Button", priority=0)
+unsupported_button = device_obj(
+    module_id=2, device_type=1111, role="button", name="Button", priority=0
+)
 
 
 class Test_New_Unsupported_Device_Connecting_After_Connect_Sequence(unittest.TestCase):
