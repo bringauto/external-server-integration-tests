@@ -40,7 +40,7 @@ class Test_Connection_Sequence(unittest.TestCase):
     def test_sending_connect_message_statuses_and_commands_makes_successful_connect_sequence(
         self,
     ):
-        payload = {"content": "An arbitrary string 🔥", "timestamp": 111}
+        payload = {"content": "An arbitrary string ...", "timestamp": 111}
         self.ec.post(connect_msg("id", "company_x", "car_a", [test_device]), sleep=0.1)
         self.ec.post(
             status("id", DeviceState.CONNECTING, test_device, 0, json.dumps(payload).encode()),
@@ -55,7 +55,7 @@ class Test_Connection_Sequence(unittest.TestCase):
         self.assertEqual(s.payload.data.to_dict(), payload)
 
     def test_sending_connect_msg_twice_stops_sequence_and_prevents_sending_status(self):
-        payload = {"content": "An arbitrary string 🔥", "timestamp": 111}
+        payload = {"content": "An arbitrary string ...", "timestamp": 111}
         self.ec.post(connect_msg("id", "company_x", "car_a", [test_device]), sleep=0.1)
         self.ec.post(connect_msg("id", "company_x", "car_a", [test_device]), sleep=0.1)
         self.ec.post(
@@ -69,7 +69,7 @@ class Test_Connection_Sequence(unittest.TestCase):
     def test_sending_status_twice_stops_the_sequence_and_prevents_sending_of_command_via_mqtt(
         self,
     ):
-        payload = {"content": "An arbitrary string 🔥", "timestamp": 111}
+        payload = {"content": "An arbitrary string ...", "timestamp": 111}
         self.ec.post(connect_msg("id", "company_x", "car_a", [test_device]), sleep=0.1)
         self.ec.post(
             status("id", DeviceState.CONNECTING, test_device, 0, json.dumps(payload).encode()),
@@ -89,7 +89,7 @@ class Test_Connection_Sequence(unittest.TestCase):
     def test_sending_getting_multiple_commands_does_not_interrupt_the_connect_sequence(
         self,
     ):
-        status_payload = {"content": "An arbitrary string 🔥", "timestamp": 111}
+        status_payload = {"content": "An arbitrary string ...", "timestamp": 111}
         command_payload_1 = {"content": "Another arbitrary string 🌲", "timestamp": 222}
         command_payload_2 = {"content": "Yet another arbitrary string 🌲🌲", "timestamp": 333}
         self.api.post_statuses(

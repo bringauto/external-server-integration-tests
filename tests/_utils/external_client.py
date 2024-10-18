@@ -59,7 +59,7 @@ class ExternalClientMock:
         self._company = company
         self._car = car
 
-    def post(self, msg: _ExternalClientMsg, sleep: float = 0.0) -> None:
+    def post(self, msg: _ExternalClientMsg, sleep: float = 0.1) -> None:
         data = msg.SerializeToString()
         self._comm_layer.post(self._company, self._car, data)
         time.sleep(max(sleep, 0.0))

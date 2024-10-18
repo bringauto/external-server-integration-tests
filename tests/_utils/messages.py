@@ -1,6 +1,7 @@
-from typing import Optional, Any
+from typing import Optional, Any, Literal
 import enum
 import time
+import json
 
 from google.protobuf.json_format import MessageToDict  # type: ignore
 
@@ -24,6 +25,15 @@ from .modules.mission_module.MissionModule_pb2 import (  # type: ignore
     Position,
     Station,
 )
+
+
+DeviceStateStr = Literal["CONNECTING", "RUNNING", "DISCONNECT", "ERROR"]
+device_status_str: dict[DeviceStateStr, _Status.DeviceState] = {
+    "CONNECTING": _Status.CONNECTING,
+    "RUNNING": _Status.RUNNING,
+    "DISCONNECT": _Status.DISCONNECT,
+    "ERROR": _Status.ERROR,
+}
 
 
 class Action(enum.Enum):
@@ -175,19 +185,20 @@ def device_obj(module_id: int, device_type: int, role: str, name: str, priority:
 
 def status(
     session_id: str,
-    state: _Status.DeviceState,
+    state: DeviceStateStr,
     device: Device,
     counter: int,
-    payload: bytes,
+    payload: bytes | dict,
     error_message: Optional[bytes] = None,
 ) -> _ExternalClientMsg:
     """Create a status message sent over MQTT to External Server."""
 
+    payload_bytes = json.dumps(payload).encode() if isinstance(payload, dict) else payload
     status = _Status(
         sessionId=session_id,
-        deviceState=state.value,
+        deviceState=device_status_str[state],
         messageCounter=counter,
-        deviceStatus=DeviceStatus(device=device, statusData=payload),
+        deviceStatus=DeviceStatus(device=device, statusData=payload_bytes),
         errorMessage=error_message,
     )
     return _ExternalClientMsg(status=status)
