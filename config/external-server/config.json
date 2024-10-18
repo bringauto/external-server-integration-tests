@@ -31,6 +31,17 @@
         "delay_after_threshold_reached_ms": "500",
         "retry_requests_delay_ms": "220"
       }
+    },
+    "3": {
+      "lib_path": "/home/bringauto/modules/transparent_module/lib/libtransparent-external-server-shared.so",
+      "config": {
+        "api_url": "http://http-api:8080/v2/protocol",
+        "api_key": "TestAPIKey",
+        "max_requests_threshold_count": "5",
+        "max_requests_threshold_period_ms": "1000",
+        "delay_after_threshold_reached_ms": "500",
+        "retry_requests_delay_ms": "220"
+      }
     }
   },
   "company_name": "company_x",

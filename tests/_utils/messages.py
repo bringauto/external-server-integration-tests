@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Any
 import enum
 import time
 
@@ -54,6 +54,36 @@ class DeviceState(enum.Enum):
 
 def station(name: str, position: Position) -> dict:
     return {"name": name, "position": MessageToDict(position)}
+
+
+def api_status(device_id: DeviceId, payload: dict[str, Any]) -> Message:
+    """Create a status message."""
+    payload_dict = {
+        "encoding": "JSON",
+        "message_type": "STATUS",
+        "data": payload,
+    }
+    message = Message(
+        device_id=device_id,
+        timestamp=int(time.time() * 1000),
+        payload=Payload.from_dict(payload_dict),
+    )
+    return message
+
+
+def api_command(device_id: DeviceId, payload: dict[str, Any]) -> Message:
+    """Create a command message."""
+    payload_dict = {
+        "encoding": "JSON",
+        "message_type": "COMMAND",
+        "data": payload,
+    }
+    message = Message(
+        device_id=device_id,
+        timestamp=int(time.time() * 1000),
+        payload=Payload.from_dict(payload_dict),
+    )
+    return message
 
 
 def api_autonomy_command(
