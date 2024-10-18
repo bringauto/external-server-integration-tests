@@ -3,10 +3,8 @@ import sys
 import time
 import json
 
-sys.path.append(".")
 sys.path.append("lib/fleet-protocol/protobuf/compiled/python")
 
-from tests._utils.misc import clear_logs
 from tests._utils.api_client_mock import ApiClientMock
 from tests._utils.external_client import ExternalClientMock, communication_layer
 from tests._utils.docker import docker_compose_up, docker_compose_down
@@ -34,7 +32,6 @@ _comm_layer = communication_layer()
 class Test_Message_Timeout(unittest.TestCase):
 
     def setUp(self) -> None:
-        clear_logs()
         _comm_layer.start()
         self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
         self.api_client = ApiClientMock(API_HOST, "TestAPIKey")
@@ -64,7 +61,9 @@ class Test_Message_Timeout(unittest.TestCase):
         self,
     ):
         payload = AutonomyStatus().SerializeToString()
-        self.api_client.post_commands("company_x", "car_a", api_autonomy_command(autonomy_id, Action.NO_ACTION, [], ""))
+        self.api_client.post_commands(
+            "company_x", "car_a", api_autonomy_command(autonomy_id, Action.NO_ACTION, [], "")
+        )
         time.sleep(self.msg_timeout / 2)
         self.ec.post(status("id", DeviceState.RUNNING, autonomy, 1, payload), sleep=0.1)
         time.sleep(self.msg_timeout / 2)

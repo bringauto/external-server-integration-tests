@@ -1,11 +1,7 @@
 import unittest
-import sys
 import time
 
-sys.path.append(".")
-
 from tests._utils.api_client_mock import ApiClientMock
-from tests._utils.misc import clear_logs
 from tests._utils.external_client import ExternalClientMock, communication_layer
 from tests._utils.docker import docker_compose_up, docker_compose_down
 from tests._utils.messages import (
@@ -16,7 +12,7 @@ from tests._utils.messages import (
     connect_msg,
     device_id,
     device_obj,
-    status
+    status,
 )
 
 
@@ -29,7 +25,6 @@ comm_layer = communication_layer()
 class Test_Connection_Sequence(unittest.TestCase):
 
     def setUp(self) -> None:
-        clear_logs()
         comm_layer.start()
         self.ec_a = ExternalClientMock(comm_layer, "company_x", "car_a")
         self.ec_b = ExternalClientMock(comm_layer, "company_x", "car_b")
@@ -79,7 +74,7 @@ class Test_Connection_Sequence(unittest.TestCase):
         self.ec_a.post(status("id", DeviceState.RUNNING, autonomy, 0, self.payload), sleep=0.1)
         self.ec_b.post(status("id", DeviceState.RUNNING, autonomy, 0, self.payload), sleep=0.1)
 
-        time.sleep(0.5)
+        time.sleep(1)
 
         # status for car_1 has been succesfully sent
         statuses = self.api.get_statuses("company_x", "car_a")

@@ -64,11 +64,8 @@ class MQTTBrokerTest:
         if len(payloads) == 1:
             publish.single(topic, payload=payload[0], hostname=self._host, port=self._port)
         else:
-            try:
-                publish.multiple(msgs=[(topic, p) for p in payloads], hostname=self._host, port=self._port)  # type: ignore
-                print(f"Test broker: Published messages to topic {topic}.")
-            except Exception as e:  # pragma: no cover
-                raise e
+            publish.multiple(msgs=[(topic, p) for p in payloads], hostname=self._host, port=self._port)  # type: ignore
+            print(f"Test broker: Published messages to topic {topic}.")
 
     def start(self, sleep: float = 1):
         if self.is_running:

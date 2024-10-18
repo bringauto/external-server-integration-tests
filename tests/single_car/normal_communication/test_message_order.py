@@ -3,7 +3,6 @@ import time
 from concurrent import futures
 import sys
 
-sys.path.append(".")
 sys.path.append("lib/fleet-protocol/protobuf/compiled/python")
 
 from google.protobuf.json_format import MessageToDict  # type: ignore
@@ -24,7 +23,6 @@ from tests._utils.messages import (
     device_id,
     DeviceState,
 )
-from tests._utils.misc import clear_logs
 from tests._utils.api_client_mock import ApiClientMock
 from tests._utils.external_client import ExternalClientMock, communication_layer
 from tests._utils.docker import docker_compose_up, docker_compose_down
@@ -42,9 +40,8 @@ class Test_Message_Order(unittest.TestCase):
         _comm_layer.start()
         self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
         self.api_client = ApiClientMock(API_HOST, "TestAPIKey")
-        clear_logs()
         docker_compose_up()
-        self._run_connect_sequence(car_name = "car_a")
+        self._run_connect_sequence(car_name="car_a")
         time.sleep(0.5)
 
     def test_statuses_received_in_incorrect_are_published_to_api_in_correct_order(self):

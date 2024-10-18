@@ -35,6 +35,7 @@ class _CommunicationLayerImpl(CommunicationLayer):
     def post(self, company: str, car_name: str, data: bytes) -> None:
         topic = f"{company}/{car_name}/module_gateway"
         self._broker.publish(topic, data)
+        print(f"Published message to {topic}")
 
     def collect(self, company: str, car_name: str, n: int) -> list[_MQTTMessage]:
         topic = f"{company}/{car_name}/external_server"

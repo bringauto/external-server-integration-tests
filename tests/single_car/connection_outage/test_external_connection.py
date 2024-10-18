@@ -3,7 +3,6 @@ import json
 import time
 from concurrent import futures
 
-from tests._utils.misc import clear_logs
 from tests._utils.api_client_mock import ApiClientMock
 from tests._utils.external_client import ExternalClientMock, communication_layer
 from tests._utils.docker import docker_compose_up, docker_compose_down
@@ -35,7 +34,6 @@ class Test_New_Connection_Sequence_Is_Accepted_After_Mqtt_Timeout(unittest.TestC
         _comm_layer.start()
         self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
         self.api_client = ApiClientMock(API_HOST, "TestAPIKey")
-        clear_logs()
         docker_compose_up()
         self.payload = AutonomyStatus().SerializeToString()
 

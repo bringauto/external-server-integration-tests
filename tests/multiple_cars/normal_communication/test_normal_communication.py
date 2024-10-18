@@ -1,13 +1,9 @@
 import unittest
-import sys
 import time
 import concurrent.futures as futures
 import json
 
-sys.path.append(".")
-
 from tests._utils.api_client_mock import ApiClientMock
-from tests._utils.misc import clear_logs
 from tests._utils.external_client import ExternalClientMock, communication_layer
 from tests._utils.docker import docker_compose_up, docker_compose_down
 from tests._utils.messages import (
@@ -39,7 +35,6 @@ comm_layer = communication_layer()
 class Test_Normal_Communication(unittest.TestCase):
 
     def setUp(self) -> None:
-        clear_logs()
         comm_layer.start()
         self.ec_a = ExternalClientMock(comm_layer, "company_x", "car_a")
         self.ec_b = ExternalClientMock(comm_layer, "company_x", "car_b")
@@ -54,13 +49,17 @@ class Test_Normal_Communication(unittest.TestCase):
         io_payload = json.dumps(payload_dict).encode()
 
         self.ec_a.post(connect_msg("id", "company_x", "car_a", [autonomy, button]), sleep=0.1)
-        self.ec_a.post(status("id", DeviceState.CONNECTING, autonomy, 0, autonomy_payload), sleep=0.1)
+        self.ec_a.post(
+            status("id", DeviceState.CONNECTING, autonomy, 0, autonomy_payload), sleep=0.1
+        )
         self.ec_a.post(status("id", DeviceState.CONNECTING, button, 1, io_payload), sleep=0.1)
         self.ec_a.post(command_response("id", CmdResponseType.OK, 0), sleep=0.2)
         self.ec_a.post(command_response("id", CmdResponseType.OK, 1))
 
         self.ec_b.post(connect_msg("id", "company_x", "car_b", [autonomy, button]), sleep=0.1)
-        self.ec_b.post(status("id", DeviceState.CONNECTING, autonomy, 0, autonomy_payload), sleep=0.1)
+        self.ec_b.post(
+            status("id", DeviceState.CONNECTING, autonomy, 0, autonomy_payload), sleep=0.1
+        )
         self.ec_b.post(status("id", DeviceState.CONNECTING, button, 1, io_payload), sleep=0.1)
         self.ec_b.post(command_response("id", CmdResponseType.OK, 0), sleep=0.1)
         self.ec_b.post(command_response("id", CmdResponseType.OK, 1))
@@ -85,21 +84,27 @@ class Test_Normal_Communication(unittest.TestCase):
                 "car_b",
                 api_autonomy_command(autonomy_id, Action.NO_ACTION, [], "route_1"),
             )
-            self.api.post_commands("company_x", "car_a", api_io_command(button_id, [{"outNum": 3, "actType": 2}]))
-            self.api.post_commands("company_x", "car_b", api_io_command(button_id, [{"outNum": 3, "actType": 2}]))
+            self.api.post_commands(
+                "company_x", "car_a", api_io_command(button_id, [{"outNum": 3, "actType": 2}])
+            )
+            self.api.post_commands(
+                "company_x", "car_b", api_io_command(button_id, [{"outNum": 3, "actType": 2}])
+            )
             time.sleep(1)
 
             autonomy_cmd_a, io_cmd_a = tuple(f_a.result())
             autonomy_cmd_b, io_cmd_b = tuple(f_b.result())
 
             self.assertEqual(
-                ExternalServerMsg.FromString(autonomy_cmd_a.payload).command.deviceCommand.device, autonomy
+                ExternalServerMsg.FromString(autonomy_cmd_a.payload).command.deviceCommand.device,
+                autonomy,
             )
             self.assertEqual(
                 ExternalServerMsg.FromString(io_cmd_a.payload).command.deviceCommand.device, button
             )
             self.assertEqual(
-                ExternalServerMsg.FromString(autonomy_cmd_b.payload).command.deviceCommand.device, autonomy
+                ExternalServerMsg.FromString(autonomy_cmd_b.payload).command.deviceCommand.device,
+                autonomy,
             )
             self.assertEqual(
                 ExternalServerMsg.FromString(io_cmd_b.payload).command.deviceCommand.device, button

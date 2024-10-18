@@ -1,10 +1,6 @@
 import unittest
-import sys
-import os
 import time
 import json
-
-sys.path.append(".")
 
 from tests._utils.api_client_mock import ApiClientMock
 from tests._utils.external_client import ExternalClientMock, communication_layer
@@ -22,14 +18,6 @@ from tests._utils.messages import (
 )
 
 
-def clear_logs() -> None:
-    pass
-    # if os.path.isfile("./log/external-server/external_server.log"):
-    #     os.remove("./log/external-server/external_server.log")
-    # if os.path.isfile("./log/module-gateway/ModuleGateway.log"):
-    #     os.remove("./log/module-gateway/ModuleGateway.log")
-
-
 API_HOST = "http://localhost:8080/v2/protocol"
 
 
@@ -45,7 +33,6 @@ _comm_layer = communication_layer()
 class Test_New_Supported_Device_Connecting_After_Connect_Sequence(unittest.TestCase):
 
     def setUp(self) -> None:
-        clear_logs()
         _comm_layer.start()
         self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
         self.api_client = ApiClientMock(API_HOST, "TestAPIKey")
@@ -126,7 +113,6 @@ unsupported_button = device_obj(module_id=2, type=1111, role="button", name="But
 class Test_New_Unsupported_Device_Connecting_After_Connect_Sequence(unittest.TestCase):
 
     def setUp(self) -> None:
-        clear_logs()
         _comm_layer.start()
         self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
         self.api_client = ApiClientMock(API_HOST, "TestAPIKey")

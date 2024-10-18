@@ -13,6 +13,9 @@ config/tests/config.json
 .idea/
 .vscode/
 
+# Logs
+*.log
+
 # Distribution / packaging
 .Python
 build/

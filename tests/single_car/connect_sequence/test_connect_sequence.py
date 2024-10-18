@@ -1,11 +1,7 @@
 import unittest
-import sys
 import time
 
-sys.path.append(".")
-
 from tests._utils.api_client_mock import ApiClientMock
-from tests._utils.misc import clear_logs
 from tests._utils.external_client import ExternalClientMock, communication_layer
 from tests._utils.docker import docker_compose_up, docker_compose_down
 from tests._utils.messages import (
@@ -35,7 +31,6 @@ comm_layer = communication_layer()
 class Test_Connection_Sequence(unittest.TestCase):
 
     def setUp(self) -> None:
-        clear_logs()
         comm_layer.start()
         self.ec = ExternalClientMock(comm_layer, "company_x", "car_a")
         self.api = ApiClientMock(API_HOST, "TestAPIKey")

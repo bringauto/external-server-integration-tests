@@ -1,11 +1,7 @@
 import unittest
 import time
 import json
-import sys
 
-sys.path.append(".")
-
-from tests._utils.misc import clear_logs
 from tests._utils.api_client_mock import ApiClientMock
 from tests._utils.external_client import ExternalClientMock, communication_layer
 from tests._utils.docker import docker_compose_up, docker_compose_down
@@ -31,7 +27,6 @@ class Test_Device_Disconnection(unittest.TestCase):
 
     def setUp(self) -> None:
         _comm_layer.start()
-        clear_logs()
         self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
         self.api_client = ApiClientMock(API_HOST, "TestAPIKey")
         docker_compose_up()

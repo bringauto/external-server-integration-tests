@@ -1,12 +1,8 @@
 import unittest
-import sys
 import time
 from concurrent import futures
 from google.protobuf.json_format import MessageToDict  # type: ignore
 
-sys.path.append(".")
-
-from tests._utils.misc import clear_logs
 from tests._utils.api_client_mock import ApiClientMock
 from tests._utils.external_client import ExternalClientMock, communication_layer
 from tests._utils.docker import docker_compose_up, docker_compose_down
@@ -42,7 +38,6 @@ _comm_layer = communication_layer()
 class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
 
     def setUp(self) -> None:
-        clear_logs()
         _comm_layer.start()
         self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
         self.api_client = ApiClientMock(API_HOST, "TestAPIKey")
@@ -59,7 +54,13 @@ class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
             next_stop=station("stop_a", position(49.1, 16.0, 123.4)),
         )
         self.ec.post(
-            status("id", DeviceState.RUNNING, autonomy, 1, payload.SerializeToString()),
+            status(
+                session_id="id",
+                state=DeviceState.RUNNING,
+                device=autonomy,
+                counter=1,
+                payload=payload.SerializeToString(),
+            ),
             sleep=0.1,
         )
         time.sleep(0.5)
@@ -111,7 +112,6 @@ class Test_Succesfull_Communication_With_Single_Device(unittest.TestCase):
 class Test_Messages_From_Unsupported_Device(unittest.TestCase):
 
     def setUp(self) -> None:
-        clear_logs()
         _comm_layer.start()
         self.ec = ExternalClientMock(_comm_layer, "company_x", "car_a")
         self.api_client = ApiClientMock(API_HOST, "TestAPIKey")
@@ -131,11 +131,11 @@ class Test_Messages_From_Unsupported_Device(unittest.TestCase):
         )
         self.ec.post(
             status(
-                "id",
-                DeviceState.RUNNING,
-                autonomy,
-                0,
-                AutonomyStatus().SerializeToString(),
+                session_id="id",
+                state=DeviceState.RUNNING,
+                device=autonomy,
+                counter=1,
+                payload=AutonomyStatus(state=AutonomyStatus.ERROR).SerializeToString(),
             ),
             sleep=0.1,
         )
@@ -144,16 +144,19 @@ class Test_Messages_From_Unsupported_Device(unittest.TestCase):
                 "id",
                 DeviceState.CONNECTING,
                 unsupported_device,
-                0,
+                2,
                 AutonomyStatus().SerializeToString(),
             ),
             sleep=0.1,
         )
-        time.sleep(1)
+        time.sleep(0.1)
         s = self.api_client.get_statuses("company_x", "car_a", since=timestamp)
         self.assertEqual(len(s), 1)
         self.assertEqual(s[0].device_id.module_id, autonomy.module)
         self.assertEqual(s[0].device_id.name, "Autonomy")
+        self.assertEqual(s[0].device_id.role, "driving")
+        self.assertEqual(s[0].payload.data.to_dict()["state"], "ERROR")
+        print(s[0].to_json())
 
     def tearDown(self):
         docker_compose_down()
@@ -171,7 +174,7 @@ class Test_Messages_From_Unsupported_Device(unittest.TestCase):
             ),
             sleep=0.1,
         )
-        ext_client.post(command_response("id", CmdResponseType.OK, 0), sleep=0.5)
+        ext_client.post(command_response("id", CmdResponseType.OK, 0), sleep=0.1)
 
 
 if __name__ == "__main__":  # pragma: no cover
