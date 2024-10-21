@@ -30,6 +30,14 @@ For each of the fields in the `config/tests/config.json` file, replace the `<pat
 
 Modify the `config/http-api-config.json` file to match the configuration of the Fleet Protocol HTTP API used for testing (the default content matches the configuration for the HTTP API version `2.7.0`).
 
+### External server configuration
+
+`config/external-server` contains the configuration of the External Server. There are two versions, each used in part of the tests:S
+- `config.json` for the case of single car,
+- `config_2_cars.json` for the case of two cars.
+
+Always modify both these configuration files to match the configuration of the version of the External Server used for testing.
+
 ## Environment and submodules for testing
 
 In the `requirements.txt` file set the version of `fleet_http_client_python` to the version that is compatible with the version of the Fleet Protocol HTTP API used for testing.
