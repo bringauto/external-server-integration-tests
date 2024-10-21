@@ -11,7 +11,6 @@ The `tests/_utils` folder contains utility functions and classes used in the tes
 # Requirements
 
 - Python (version >= 3.10)
-- protoc (version >= 3.21)
 - Docker (version >= 27.0)
 
 # Setup

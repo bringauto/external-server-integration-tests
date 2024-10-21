@@ -1,6 +1,6 @@
 {
-    "general-settings": {
-        "log-path": "log",
+    "logging": {
+        "log_path": "/home/bringauto/log",
         "verbose": true
     },
     "database": {
@@ -20,7 +20,8 @@
         }
     },
     "http_server": {
-        "base_uri": "http://http-api:8080/v2/protocol"
+        "base_uri": "http://http-api:8080/v2/protocol",
+        "port": 8080
     },
     "request_for_messages": {
         "timeout_in_seconds": 5
@@ -33,3 +34,4 @@
         "realm": ""
     }
 }
+
