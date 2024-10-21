@@ -15,7 +15,9 @@ The `tests/_utils` folder contains utility functions and classes used in the tes
 
 # Setup
 
-## Choosing the implementations to be tested
+## Configuration
+
+### Tested versions
 
 Copy the `config/tests/empty_config.json` file to `config/tests/config.json`.
 
@@ -23,6 +25,10 @@ For each of the fields in the `config/tests/config.json` file, replace the `<pat
 
 - `EXTERNAL_SERVER_IMAGE` - the Docker image of the External Server implementation to be tested
 - `FLEET_PROTOCOL_HTTP_API_IMAGE` - the Docker image of the Fleet Protocol HTTP API implementation to be used for the tests
+
+### HTTP API configuration
+
+Modify the `config/http-api-config.json` file to match the configuration of the Fleet Protocol HTTP API used for testing (the default content matches the configuration for the HTTP API version `2.7.0`).
 
 ## Environment and submodules for testing
 
