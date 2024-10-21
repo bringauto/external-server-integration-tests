@@ -5,8 +5,8 @@
   },
   "mqtt_address": "172.17.0.1",
   "mqtt_port": 1883,
-  "mqtt_timeout": 10,
-  "timeout": 5,
+  "mqtt_timeout": 15,
+  "timeout": 15,
   "send_invalid_command": false,
   "sleep_duration_after_connection_refused": 1,
   "common_modules": {

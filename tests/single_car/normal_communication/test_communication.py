@@ -7,14 +7,12 @@ from tests._utils.external_client import ExternalClientMock, communication_layer
 from tests._utils.docker import docker_compose_up, docker_compose_down
 from tests._utils.messages import (
     api_command,
-    api_status,
     command_response,
     connect_msg,
     device_obj,
     CmdResponseType,
     Device,
     device_id,
-    DeviceState,
     status,
 )
 from ExternalProtocol_pb2 import ExternalServer as ExternalServerMsg  # type: ignore

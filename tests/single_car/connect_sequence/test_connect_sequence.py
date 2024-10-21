@@ -6,11 +6,7 @@ from tests._utils.api_client_mock import ApiClientMock
 from tests._utils.external_client import ExternalClientMock, communication_layer
 from tests._utils.docker import docker_compose_up, docker_compose_down
 from tests._utils.messages import (
-    Action,
-    AutonomyState,
-    AutonomyStatus,
     CmdResponseType,
-    DeviceState,
     api_command,
     api_status,
     command_response,
@@ -18,8 +14,6 @@ from tests._utils.messages import (
     device_id,
     device_obj,
     status,
-    station,
-    position,
 )
 
 
@@ -43,7 +37,7 @@ class Test_Connection_Sequence(unittest.TestCase):
         payload = {"content": "An arbitrary string ...", "timestamp": 111}
         self.ec.post(connect_msg("id", "company_x", "car_a", [test_device]), sleep=0.1)
         self.ec.post(
-            status("id", DeviceState.CONNECTING, test_device, 0, json.dumps(payload).encode()),
+            status("id", "CONNECTING", test_device, 0, json.dumps(payload).encode()),
             sleep=0.1,
         )
         self.ec.post(command_response("id", CmdResponseType.OK, 0), sleep=0.5)
@@ -59,7 +53,7 @@ class Test_Connection_Sequence(unittest.TestCase):
         self.ec.post(connect_msg("id", "company_x", "car_a", [test_device]), sleep=0.1)
         self.ec.post(connect_msg("id", "company_x", "car_a", [test_device]), sleep=0.1)
         self.ec.post(
-            status("id", DeviceState.CONNECTING, test_device, 0, json.dumps(payload).encode()),
+            status("id", "CONNECTING", test_device, 0, json.dumps(payload).encode()),
             sleep=0.1,
         )
         time.sleep(0.5)
@@ -72,11 +66,11 @@ class Test_Connection_Sequence(unittest.TestCase):
         payload = {"content": "An arbitrary string ...", "timestamp": 111}
         self.ec.post(connect_msg("id", "company_x", "car_a", [test_device]), sleep=0.1)
         self.ec.post(
-            status("id", DeviceState.CONNECTING, test_device, 0, json.dumps(payload).encode()),
+            status("id", "CONNECTING", test_device, 0, json.dumps(payload).encode()),
             sleep=0.1,
         )
         self.ec.post(
-            status("id", DeviceState.CONNECTING, test_device, 0, json.dumps(payload).encode()),
+            status("id", "CONNECTING", test_device, 0, json.dumps(payload).encode()),
             sleep=0.1,
         )
         s = self.api.get_statuses("company_x", "car_a", wait=True)[0]
@@ -90,8 +84,8 @@ class Test_Connection_Sequence(unittest.TestCase):
         self,
     ):
         status_payload = {"content": "An arbitrary string ...", "timestamp": 111}
-        command_payload_1 = {"content": "Another arbitrary string 🌲", "timestamp": 222}
-        command_payload_2 = {"content": "Yet another arbitrary string 🌲🌲", "timestamp": 333}
+        command_payload_1 = {"content": "Another arbitrary string ...", "timestamp": 222}
+        command_payload_2 = {"content": "Yet another arbitrary string ...", "timestamp": 333}
         self.api.post_statuses(
             "company_x",
             "car_a",
@@ -105,9 +99,7 @@ class Test_Connection_Sequence(unittest.TestCase):
         )
         self.ec.post(connect_msg("id", "company_x", "car_a", [test_device]), sleep=0.1)
         self.ec.post(
-            status(
-                "id", DeviceState.CONNECTING, test_device, 0, json.dumps(status_payload).encode()
-            ),
+            status("id", "CONNECTING", test_device, 0, json.dumps(status_payload).encode()),
             sleep=0.1,
         )
         self.ec.post(command_response("id", CmdResponseType.OK, 0), sleep=0.5)

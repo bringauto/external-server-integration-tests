@@ -3,8 +3,6 @@ import enum
 import time
 import json
 
-from google.protobuf.json_format import MessageToDict  # type: ignore
-
 from InternalProtocol_pb2 import (  # type: ignore
     Device,
     DeviceStatus as DeviceStatus,
@@ -18,13 +16,6 @@ from ExternalProtocol_pb2 import (  # type: ignore
     Status as _Status,
 )
 from fleet_http_client_python import Message, Payload, DeviceId  # type: ignore
-from .modules.mission_module.MissionModule_pb2 import (  # type: ignore
-    AutonomyCommand,
-    AutonomyError,
-    AutonomyStatus,
-    Position,
-    Station,
-)
 
 
 DeviceStateStr = Literal["CONNECTING", "RUNNING", "DISCONNECT", "ERROR"]
@@ -34,20 +25,6 @@ device_status_str: dict[DeviceStateStr, _Status.DeviceState] = {
     "DISCONNECT": _Status.DISCONNECT,
     "ERROR": _Status.ERROR,
 }
-
-
-class Action(enum.Enum):
-    STOP = AutonomyCommand.STOP
-    START = AutonomyCommand.START
-    NO_ACTION = AutonomyCommand.NO_ACTION
-
-
-class AutonomyState(enum.Enum):
-    DRIVE = AutonomyStatus.DRIVE
-    ERROR = AutonomyStatus.ERROR
-    IDLE = AutonomyStatus.IDLE
-    IN_STOP = AutonomyStatus.IN_STOP
-    OBSTACLE = AutonomyStatus.OBSTACLE
 
 
 class CmdResponseType(enum.Enum):
@@ -60,10 +37,6 @@ class DeviceState(enum.Enum):
     RUNNING = _Status.RUNNING
     DISCONNECT = _Status.DISCONNECT
     ERROR = _Status.ERROR
-
-
-def station(name: str, position: Position) -> dict:
-    return {"name": name, "position": MessageToDict(position)}
 
 
 def api_status(device_id: DeviceId, payload: dict[str, Any]) -> Message:
@@ -81,62 +54,7 @@ def api_status(device_id: DeviceId, payload: dict[str, Any]) -> Message:
     return message
 
 
-def api_command(device_id: DeviceId, payload: dict[str, Any]) -> Message:
-    """Create a command message."""
-    payload_dict = {
-        "encoding": "JSON",
-        "message_type": "COMMAND",
-        "data": payload,
-    }
-    message = Message(
-        device_id=device_id,
-        timestamp=int(time.time() * 1000),
-        payload=Payload.from_dict(payload_dict),
-    )
-    return message
-
-
-def api_autonomy_command(
-    device_id: DeviceId, action: Action, stops: list[Station], route: str
-) -> Message:
-    """Create a command message."""
-    command_data = AutonomyCommand(stops=stops, action=action.value, route=route)
-    payload_dict = {
-        "encoding": "JSON",
-        "message_type": "COMMAND",
-        "data": MessageToDict(command_data),
-    }
-    message = Message(
-        device_id=device_id,
-        timestamp=int(time.time() * 1000),
-        payload=Payload.from_dict(payload_dict),
-    )
-    return message
-
-
-def api_autonomy_status(
-    device_id: DeviceId,
-    state: AutonomyState,
-    telemetry: AutonomyStatus.Telemetry,
-    next_stop: Optional[Station] = None,
-) -> Message:
-    """Create a status message."""
-    state_val = state.value if isinstance(state, AutonomyState) else state
-    status_data = AutonomyStatus(telemetry=telemetry, state=state_val, nextStop=next_stop)
-    payload_dict = {
-        "encoding": "JSON",
-        "message_type": "STATUS",
-        "data": MessageToDict(status_data),
-    }
-    message = Message(
-        device_id=device_id,
-        timestamp=int(time.time() * 1000),
-        payload=Payload.from_dict(payload_dict),
-    )
-    return message
-
-
-def api_io_command(device_id: DeviceId, data) -> Message:
+def api_command(device_id: DeviceId, data) -> Message:
     """Create a command message."""
     payload_dict = {
         "encoding": "JSON",
@@ -169,7 +87,7 @@ def connect_msg(session_id: str, company: str, car_name: str, devices: list[Devi
     )
 
 
-def device_id(module_id: int, device_type: int, role: str, name: str, **kwargs) -> DeviceId:
+def device_id(module_id: int, device_type: int, role: str, name: str) -> DeviceId:
     return DeviceId(module_id=module_id, type=device_type, role=role, name=name)
 
 
@@ -194,35 +112,14 @@ def status(
     """Create a status message sent over MQTT to External Server."""
 
     payload_bytes = json.dumps(payload).encode() if isinstance(payload, dict) else payload
+    error_bytes = (
+        json.dumps(error_message).encode() if isinstance(error_message, dict) else error_message
+    )
     status = _Status(
         sessionId=session_id,
         deviceState=device_status_str[state],
         messageCounter=counter,
         deviceStatus=DeviceStatus(device=device, statusData=payload_bytes),
-        errorMessage=error_message,
+        errorMessage=error_bytes,
     )
     return _ExternalClientMsg(status=status)
-
-
-def position(longitude: float = 49.1, latitude: float = 16.05, altitude: float = 123.4) -> Position:
-    """Return a Position message for telemetry and stops used for creating messages for tests."""
-    return Position(longitude=longitude, latitude=latitude, altitude=altitude)
-
-
-def telemetry(
-    speed: float = 4.5, fuel: float = 0.5, position: Position = position()
-) -> AutonomyStatus.Telemetry:
-    """Return a telemetry object for the AutonomyStatus message."""
-    return AutonomyStatus.Telemetry(speed=speed, fuel=fuel, position=position)
-
-
-def autonomy_status_data(
-    state: AutonomyState = AutonomyState.DRIVE,
-    telemetry: AutonomyStatus.Telemetry = telemetry(),
-    next_stop: Station = Station(
-        name="stop_a",
-        position=Position(latitude=49.1, longitude=16.0, altitude=123.4),
-    ),
-) -> AutonomyStatus:
-    """Return a AutonomyStatus message to be included in ExternalClient message used in tests."""
-    return AutonomyStatus(telemetry=telemetry, state=state.value, nextStop=next_stop)

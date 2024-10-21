@@ -8,20 +8,15 @@ sys.path.append("lib/fleet-protocol/protobuf/compiled/python")
 from google.protobuf.json_format import MessageToDict  # type: ignore
 
 from tests._utils.messages import (
-    Action,
-    AutonomyStatus,
-    AutonomyState,
+    api_command,
+    api_status,
     CmdResponseType,
     _ExternalServerMsg,
     connect_msg,
-    position,
     status,
-    Station,
     command_response,
-    api_autonomy_command,
     device_obj,
     device_id,
-    DeviceState,
 )
 from tests._utils.api_client_mock import ApiClientMock
 from tests._utils.external_client import ExternalClientMock, communication_layer
@@ -30,8 +25,8 @@ from tests._utils.docker import docker_compose_up, docker_compose_down
 
 API_HOST = "http://localhost:8080/v2/protocol"
 _comm_layer = communication_layer()
-autonomy = device_obj(module_id=1, device_type=1, role="driving", name="Autonomy", priority=0)
-autonomy_id = device_id(module_id=1, device_type=1, role="driving", name="Autonomy")
+test_device = device_obj(module_id=3, device_type=1, role="test_device_1", name="Test_Device_1")
+test_device_id = device_id(module_id=3, device_type=1, role="test_device_1", name="Test_Device_1")
 
 
 class Test_Message_Order(unittest.TestCase):
@@ -44,48 +39,41 @@ class Test_Message_Order(unittest.TestCase):
         self._run_connect_sequence(car_name="car_a")
         time.sleep(0.5)
 
-    def test_statuses_received_in_incorrect_are_published_to_api_in_correct_order(self):
-        payload_1 = AutonomyStatus(state=AutonomyState.OBSTACLE.value).SerializeToString()
-        payload_2 = AutonomyStatus(state=AutonomyState.IDLE.value).SerializeToString()
-        payload_3 = AutonomyStatus(state=AutonomyState.ERROR.value).SerializeToString()
-        self.ec.post(status("id", DeviceState.RUNNING, autonomy, 1, payload_1), sleep=0.2)
-        self.ec.post(status("id", DeviceState.RUNNING, autonomy, 3, payload_3), sleep=0.2)
+    def test_statuses_received_in_incorrect_order_are_published_to_api_in_correct_order(self):
+        payload_1 = {"content": "An arbitrary string ...", "timestamp": 111}
+        payload_2 = {"content": "Another arbitrary string ...", "timestamp": 222}
+        payload_3 = {"content": "Yet another arbitrary string ...", "timestamp": 333}
+        self.ec.post(status("id", "RUNNING", test_device, 1, payload_1))
+        self.ec.post(status("id", "RUNNING", test_device, 3, payload_3))
 
         statuses = self.api_client.get_statuses("company_x", "car_a")
         # only the status from connect sequence and the first status are published to the API
         # status with counter value 3 is not published - counter value 2 is missing
         self.assertEqual(len(statuses), 2)
-        self.assertEqual(statuses[0].payload.data.to_dict()["state"], "IDLE")
-        self.assertEqual(statuses[1].payload.data.to_dict()["state"], "OBSTACLE")
+        self.assertEqual(statuses[1].payload.data.to_dict(), payload_1)
 
-        self.ec.post(status("id", DeviceState.RUNNING, autonomy, 2, payload_2), sleep=0.5)
+        self.ec.post(status("id", "RUNNING", test_device, 2, payload_2), sleep=0.5)
         statuses = self.api_client.get_statuses("company_x", "car_a")
         # all statuses are now published to the API in correct order
         self.assertEqual(len(statuses), 4)
-        self.assertEqual(statuses[2].payload.data.to_dict()["state"], "IDLE")
-        self.assertEqual(statuses[3].payload.data.to_dict()["state"], "ERROR")
+        self.assertEqual(statuses[2].payload.data.to_dict(), payload_2)
+        self.assertEqual(statuses[3].payload.data.to_dict(), payload_3)
 
     def test_commands_are_always_published_regardless_of_receiving_command_responses(
         self,
     ):
+
+        command_payload_1 = {"content": "An arbitrary command ...", "timestamp": 111}
+        command_payload_2 = {"content": "Another arbitrary command ...", "timestamp": 222}
+        command_payload_3 = {"content": "Yet another arbitrary command ...", "timestamp": 333}
         with futures.ThreadPoolExecutor() as executor:
             f1 = executor.submit(self.ec.get, n=3)
             self.api_client.post_commands(
                 "company_x",
                 "car_a",
-                api_autonomy_command(
-                    autonomy_id,
-                    Action.START,
-                    [Station(name="station_a", position=position(1, 1, 1))],
-                    "route_1",
-                ),
-                api_autonomy_command(autonomy_id, Action.NO_ACTION, [], ""),
-                api_autonomy_command(
-                    autonomy_id,
-                    Action.START,
-                    [Station(name="station_b", position=position(2, 2, 2))],
-                    "route_2",
-                ),
+                api_command(test_device_id, command_payload_1),
+                api_command(test_device_id, command_payload_2),
+                api_command(test_device_id, command_payload_3),
             )
             time.sleep(0.5)
             # only a single response is received, but all commands are published
@@ -100,16 +88,9 @@ class Test_Message_Order(unittest.TestCase):
         _comm_layer.stop()
 
     def _run_connect_sequence(self, car_name: str):
-        self.ec.post(connect_msg("id", "company_x", car_name, [autonomy]), sleep=0.1)
+        self.ec.post(connect_msg("id", "company_x", car_name, [test_device]), sleep=0.1)
         self.ec.post(
-            status(
-                "id",
-                DeviceState.CONNECTING,
-                autonomy,
-                0,
-                AutonomyStatus().SerializeToString(),
-            ),
-            sleep=0.1,
+            status("id", "CONNECTING", test_device, 0, {"content": "test", "timestamp": 000})
         )
         self.ec.post(command_response("id", CmdResponseType.OK, 0))
 
